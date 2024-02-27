@@ -1,3 +1,7 @@
 .vs/
+
 Base/obj/
 Base/bin/
+
+Testing/obj
+Testing/bin

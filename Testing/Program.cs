@@ -1,7 +1,7 @@
 using Graphing.Forms;
 using Graphing.Graphables;
 
-namespace Graphing;
+namespace Graphing.Testing;
 
 internal static class Program
 {
