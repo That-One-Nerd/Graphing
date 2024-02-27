@@ -1,4 +1,6 @@
-﻿using Graphing.Graphables;
+﻿using Graphing.Extensions;
+using Graphing.Graphables;
+using System.Text;
 
 namespace Graphing.Forms;
 
@@ -346,7 +348,7 @@ public partial class GraphForm : Form
         static double Integrate(EquationDelegate e, double lower, double upper)
         {
             // TODO: a better rendering method could make this much faster.
-            const double step = 1e-1;
+            const double step = 1e-2;
 
             double factor = 1;
             if (upper < lower)
@@ -362,6 +364,35 @@ public partial class GraphForm : Form
             }
 
             return sum * factor;
+        }
+    }
+
+    private void MenuMiscCaches_Click(object? sender, EventArgs e)
+    {
+        // TODO: Replace with a form with a pie chart of the use by equation
+        //       and the ability to reset them.
+        StringBuilder message = new();
+        long total = 0;
+        foreach (Graphable able in ables)
+        {
+            if (able is Equation equ)
+            {
+                long size = equ.GetCacheBytes();
+                message.AppendLine($"{able.Name}: {size.FormatAsBytes()}");
+
+                total += size;
+            }
+        }
+
+        message.AppendLine($"\nTotal: {total.FormatAsBytes()}\n\nClick \"No\" to erase caches.");
+
+        DialogResult result = MessageBox.Show(message.ToString(), "Graph Caches", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+        if (result == DialogResult.No)
+        {
+            foreach (Graphable able in ables)
+            {
+                if (able is Equation equ) equ.EraseCache();
+            }
         }
     }
 }

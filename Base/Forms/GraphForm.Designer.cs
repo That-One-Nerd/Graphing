@@ -39,6 +39,8 @@
             MenuEquations = new ToolStripMenuItem();
             MenuEquationsDerivative = new ToolStripMenuItem();
             MenuEquationsIntegral = new ToolStripMenuItem();
+            MenuMisc = new ToolStripMenuItem();
+            MenuMiscCaches = new ToolStripMenuItem();
             GraphMenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -58,7 +60,7 @@
             // GraphMenu
             // 
             GraphMenu.ImageScalingSize = new Size(32, 32);
-            GraphMenu.Items.AddRange(new ToolStripItem[] { MenuViewport, MenuColors, MenuEquations });
+            GraphMenu.Items.AddRange(new ToolStripItem[] { MenuViewport, MenuColors, MenuEquations, MenuMisc });
             GraphMenu.Location = new Point(0, 0);
             GraphMenu.Name = "GraphMenu";
             GraphMenu.Size = new Size(1449, 42);
@@ -125,6 +127,20 @@
             MenuEquationsIntegral.Size = new Size(360, 44);
             MenuEquationsIntegral.Text = "Compute Integral";
             // 
+            // MenuMisc
+            // 
+            MenuMisc.DropDownItems.AddRange(new ToolStripItem[] { MenuMiscCaches });
+            MenuMisc.Name = "MenuMisc";
+            MenuMisc.Size = new Size(83, 38);
+            MenuMisc.Text = "Misc";
+            // 
+            // MenuMiscCaches
+            // 
+            MenuMiscCaches.Name = "MenuMiscCaches";
+            MenuMiscCaches.Size = new Size(359, 44);
+            MenuMiscCaches.Text = "View Caches";
+            MenuMiscCaches.Click += MenuMiscCaches_Click;
+            // 
             // GraphForm
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
@@ -154,5 +170,7 @@
         private ToolStripMenuItem MenuEquations;
         private ToolStripMenuItem MenuEquationsDerivative;
         private ToolStripMenuItem MenuEquationsIntegral;
+        private ToolStripMenuItem MenuMisc;
+        private ToolStripMenuItem MenuMiscCaches;
     }
 }
