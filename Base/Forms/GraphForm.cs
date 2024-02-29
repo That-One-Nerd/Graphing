@@ -1,5 +1,7 @@
 ﻿using Graphing.Extensions;
 using Graphing.Graphables;
+using Graphing.Parts;
+using System.Drawing.Drawing2D;
 using System.Text;
 
 namespace Graphing.Forms;
@@ -145,6 +147,7 @@ public partial class GraphForm : Form
     protected override void OnPaint(PaintEventArgs e)
     {
         Graphics g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.HighQuality;
 
         Brush background = new SolidBrush(Color.White);
         g.FillRectangle(background, e.ClipRectangle);
@@ -154,19 +157,9 @@ public partial class GraphForm : Form
         // Draw the actual graphs.
         for (int i = 0; i < ables.Count; i++)
         {
-            IEnumerable<Line2d> lines = ables[i].GetItemsToRender(this);
+            IEnumerable<IGraphPart> lines = ables[i].GetItemsToRender(this);
             Brush graphBrush = new SolidBrush(ables[i].Color);
-            Pen penBrush = new(graphBrush, 3);
-
-            foreach (Line2d l in lines)
-            {
-                if (!double.IsNormal(l.a.x) || !double.IsNormal(l.a.y) ||
-                    !double.IsNormal(l.b.x) || !double.IsNormal(l.b.y)) continue;
-
-                Int2 start = GraphSpaceToScreenSpace(l.a),
-                     end = GraphSpaceToScreenSpace(l.b);
-                g.DrawLine(penBrush, start, end);
-            }
+            foreach (IGraphPart gp in lines) gp.Render(this, g, graphBrush);
         }
 
         base.OnPaint(e);
@@ -375,24 +368,17 @@ public partial class GraphForm : Form
         long total = 0;
         foreach (Graphable able in ables)
         {
-            if (able is Equation equ)
-            {
-                long size = equ.GetCacheBytes();
-                message.AppendLine($"{able.Name}: {size.FormatAsBytes()}");
-
-                total += size;
-            }
+            long size = able.GetCacheBytes();
+            message.AppendLine($"{able.Name}: {size.FormatAsBytes()}");
+            total += size;
         }
 
-        message.AppendLine($"\nTotal: {total.FormatAsBytes()}\n\nClick \"No\" to erase caches.");
+        message.AppendLine($"\nTotal: {total.FormatAsBytes()}\n\nErase cache?");
 
         DialogResult result = MessageBox.Show(message.ToString(), "Graph Caches", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
-        if (result == DialogResult.No)
+        if (result == DialogResult.Yes)
         {
-            foreach (Graphable able in ables)
-            {
-                if (able is Equation equ) equ.EraseCache();
-            }
+            foreach (Graphable able in ables) able.EraseCache();
         }
     }
 }
