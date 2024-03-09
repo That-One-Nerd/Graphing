@@ -29,6 +29,8 @@ public abstract class Graphable
 
     public abstract IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph);
 
+    public abstract Graphable DeepCopy();
+
     public abstract void EraseCache();
     public abstract long GetCacheBytes();
 }

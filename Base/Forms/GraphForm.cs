@@ -1,6 +1,5 @@
 ﻿using Graphing.Extensions;
 using Graphing.Graphables;
-using Graphing.Parts;
 using System.Drawing.Drawing2D;
 using System.Text;
 
@@ -170,9 +169,9 @@ public partial class GraphForm : Form
         Invalidate(false);
     }
 
-    public void Graph(Graphable able)
+    public void Graph(params Graphable[] able)
     {
-        ables.Add(able);
+        ables.AddRange(able);
         RegenerateMenuItems();
         Invalidate(false);
     }

@@ -1,6 +1,5 @@
 ﻿using Graphing.Forms;
 using Graphing.Parts;
-using static System.Windows.Forms.LinkLabel;
 
 namespace Graphing.Graphables;
 
@@ -9,7 +8,7 @@ public class SlopeField : Graphable
     private static int slopeFieldNum;
 
     private readonly SlopeFieldsDelegate equ;
-    private readonly double detail;
+    private readonly int detail;
 
     private readonly List<(Float2, GraphLine)> cache;
 
@@ -70,6 +69,8 @@ public class SlopeField : Graphable
         cache.Add((new Float2(x, y), result));
         return result;
     }
+
+    public override Graphable DeepCopy() => new SlopeField(detail, equ);
 
     public override void EraseCache() => cache.Clear();
     public override long GetCacheBytes() => cache.Count * 48;

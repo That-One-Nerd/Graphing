@@ -14,17 +14,18 @@ internal static class Program
 
         GraphForm graph = new("One Of The Graphing Calculators Of All Time");
 
-        Equation equ = new(x => x * x);
-        TangentLine tangent = new(5, 2, equ);
-
+        Equation equ = new(x =>
+        {
+            // Demonstrate the caching abilities of the software.
+            // This extra waiting is done every time the form requires a
+            // calculation done. At the start, it'll be laggy, but as you
+            // move around and zoom in, more pieces are cached, and when
+            // you reset, the viewport will be a lot less laggy.
+            for (int i = 0; i < 1_000_000; i++) ;
+            return x * x;
+        });
         graph.Graph(equ);
-        graph.Graph(tangent);
 
         Application.Run(graph);
-    }
-
-    private static double PopulationGraph(double max, double k, double A, double t)
-    {
-        return max / (1 + A * Math.Exp(-k * t));
     }
 }

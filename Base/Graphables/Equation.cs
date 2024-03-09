@@ -8,7 +8,6 @@ public class Equation : Graphable
     private static int equationNum;
 
     private readonly EquationDelegate equ;
-
     private readonly List<Float2> cache;
 
     public Equation(EquationDelegate equ)
@@ -42,9 +41,6 @@ public class Equation : Graphable
             previousX = currentX;
             previousY = currentY;
         }
-
-        // if (addedToDictionary) cache.Sort((a, b) => a.y.CompareTo(b.y)); todo: not required until binary search
-
         return lines;
     }
 
@@ -58,33 +54,46 @@ public class Equation : Graphable
         else
         {
             double result = equ(x);
-            cache.Add(new(x, result));
-            // TODO: Rather than sorting the whole list when we add a single number,
-            //       we could just insert it in its proper place.
+            cache.Insert(index + 1, new(x, result));
             return result;
         }
     }
 
+    // Pretty sure this works. Certainly works pretty well with "hard-to-compute"
+    // equations.
     private (double dist, double y, int index) NearestCachedPoint(double x)
     {
-        // TODO: Replace with a binary search system.
-        double closestDist = double.PositiveInfinity;
-        double closest = 0;
-        int closestIndex = -1;
-
-        for (int i = 0; i < cache.Count; i++)
+        if (cache.Count == 0) return (double.PositiveInfinity, double.NaN, -1);
+        else if (cache.Count == 1)
         {
-            double dist = Math.Abs(x - cache[i].x);
-            if (dist < closestDist)
-            {
-                closestDist = dist;
-                closest = cache[i].y;
-                closestIndex = i;
-            }
+            Float2 single = cache[0];
+            return (Math.Abs(single.x - x), single.y, 0);
         }
+        else
+        {
+            int boundA = 0, boundB = cache.Count;
+            do
+            {
+                int boundC = (boundA + boundB) / 2;
+                Float2 pointC = cache[boundC];
 
-        return (closestDist, closest, closestIndex);
+                if (pointC.x == x) return (0, pointC.y, boundC);
+                else if (pointC.x > x)
+                {
+                    boundA = boundC;
+                }
+                else // pointC.x < x
+                {
+                    boundB = boundC;
+                }
+
+            } while (boundB - boundA > 1);
+
+            return (Math.Abs(cache[boundA].x - x), cache[boundA].y, boundA);
+        }
     }
+
+    public override Graphable DeepCopy() => new Equation(equ);
 
     public override long GetCacheBytes() => cache.Count * 16;
 }

@@ -2,17 +2,17 @@
 
 namespace Graphing.Parts;
 
-public record struct GraphCircle : IGraphPart
+public record struct GraphUiCircle : IGraphPart
 {
     public Float2 center;
     public int radius;
 
-    public GraphCircle()
+    public GraphUiCircle()
     {
         center = new();
         radius = 1;
     }
-    public GraphCircle(Float2 center, int radius)
+    public GraphUiCircle(Float2 center, int radius)
     {
         this.center = center;
         this.radius = radius;
@@ -20,8 +20,8 @@ public record struct GraphCircle : IGraphPart
 
     public readonly void Render(in GraphForm form, in Graphics g, in Brush brush)
     {
-        if (!double.IsNormal(center.x) || !double.IsNormal(center.y) ||
-            !double.IsNormal(radius)) return;
+        if (!double.IsFinite(center.x) || !double.IsFinite(center.y) ||
+            !double.IsFinite(radius) || radius == 0) return;
 
         Int2 centerPix = form.GraphSpaceToScreenSpace(center);
         g.FillEllipse(brush, new Rectangle(new Point(centerPix.x - radius,

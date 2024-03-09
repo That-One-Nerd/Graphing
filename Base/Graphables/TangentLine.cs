@@ -7,6 +7,7 @@ public class TangentLine : Graphable
 {
     public double Position { get; set; }
 
+    private readonly Equation parent;
     private readonly EquationDelegate parentEqu;
 
     private readonly double length;
@@ -18,13 +19,14 @@ public class TangentLine : Graphable
         parentEqu = parent.GetDelegate();
         Position = position;
         this.length = length;
+        this.parent = parent;
     }
 
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
     {
         Float2 point = new(Position, parentEqu(Position));
         return [MakeSlopeLine(point, DerivativeAtPoint(Position)),
-                new GraphCircle(point, 8)];
+                new GraphUiCircle(point, 8)];
     }
     private GraphLine MakeSlopeLine(Float2 position, double slope)
     {
@@ -41,6 +43,8 @@ public class TangentLine : Graphable
         const double step = 1e-3;
         return (parentEqu(x + step) - parentEqu(x)) / step;
     }
+
+    public override Graphable DeepCopy() => new TangentLine(length, Position, parent);
 
     public override void EraseCache() { }
     public override long GetCacheBytes() => 0;

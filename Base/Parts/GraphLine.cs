@@ -20,8 +20,8 @@ public record struct GraphLine : IGraphPart
 
     public readonly void Render(in GraphForm form, in Graphics g, in Brush brush)
     {
-        if (!double.IsNormal(a.x) || !double.IsNormal(a.y) ||
-            !double.IsNormal(b.x) || !double.IsNormal(b.y)) return;
+        if (!double.IsFinite(a.x) || !double.IsFinite(a.y) ||
+            !double.IsFinite(b.x) || !double.IsFinite(b.y)) return;
 
         Int2 start = form.GraphSpaceToScreenSpace(a),
              end = form.GraphSpaceToScreenSpace(b);
