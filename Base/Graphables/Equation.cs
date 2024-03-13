@@ -7,8 +7,8 @@ public class Equation : Graphable
 {
     private static int equationNum;
 
-    private readonly EquationDelegate equ;
-    private readonly List<Float2> cache;
+    protected readonly EquationDelegate equ;
+    protected readonly List<Float2> cache;
 
     public Equation(EquationDelegate equ)
     {
@@ -47,7 +47,7 @@ public class Equation : Graphable
     public EquationDelegate GetDelegate() => equ;
 
     public override void EraseCache() => cache.Clear();
-    private double GetFromCache(double x, double epsilon)
+    protected double GetFromCache(double x, double epsilon)
     {
         (double dist, double nearest, int index) = NearestCachedPoint(x);
         if (dist < epsilon) return nearest;
@@ -61,7 +61,7 @@ public class Equation : Graphable
 
     // Pretty sure this works. Certainly works pretty well with "hard-to-compute"
     // equations.
-    private (double dist, double y, int index) NearestCachedPoint(double x)
+    protected (double dist, double y, int index) NearestCachedPoint(double x)
     {
         if (cache.Count == 0) return (double.PositiveInfinity, double.NaN, -1);
         else if (cache.Count == 1)

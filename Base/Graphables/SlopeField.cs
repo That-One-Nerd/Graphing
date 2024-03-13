@@ -7,10 +7,10 @@ public class SlopeField : Graphable
 {
     private static int slopeFieldNum;
 
-    private readonly SlopeFieldsDelegate equ;
-    private readonly int detail;
+    protected readonly SlopeFieldsDelegate equ;
+    protected readonly int detail;
 
-    private readonly List<(Float2, GraphLine)> cache;
+    protected readonly List<(Float2, GraphLine)> cache;
 
     public SlopeField(int detail, SlopeFieldsDelegate equ)
     {
@@ -24,12 +24,12 @@ public class SlopeField : Graphable
 
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
     {
-        double epsilon = 1 / (detail * 2);
+        double epsilon = 1 / (detail * 2.0);
         List<IGraphPart> lines = [];
 
-        for (double x = Math.Ceiling(graph.MinVisibleGraph.x - 1); x < graph.MaxVisibleGraph.x + 1; x += 1 / detail)
+        for (double x = Math.Ceiling(graph.MinVisibleGraph.x - 1); x < graph.MaxVisibleGraph.x + 1; x += 1.0 / detail)
         {
-            for (double y = Math.Ceiling(graph.MinVisibleGraph.y - 1); y < graph.MaxVisibleGraph.y + 1; y += 1 / detail)
+            for (double y = Math.Ceiling(graph.MinVisibleGraph.y - 1); y < graph.MaxVisibleGraph.y + 1; y += 1.0 / detail)
             {
                 lines.Add(GetFromCache(epsilon, x, y));
             }
@@ -38,7 +38,7 @@ public class SlopeField : Graphable
         return lines;
     }
 
-    private GraphLine MakeSlopeLine(Float2 position, double slope)
+    protected GraphLine MakeSlopeLine(Float2 position, double slope)
     {
         double size = detail;
 
@@ -50,7 +50,7 @@ public class SlopeField : Graphable
 
         return new(new(position.x + dirX, position.y + dirY), new(position.x - dirX, position.y - dirY));
     }
-    private GraphLine GetFromCache(double epsilon, double x, double y)
+    protected GraphLine GetFromCache(double epsilon, double x, double y)
     {
         // Probably no binary search here, though maybe it could be done
         // in terms of just one axis.

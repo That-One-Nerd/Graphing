@@ -7,10 +7,10 @@ public class TangentLine : Graphable
 {
     public double Position { get; set; }
 
-    private readonly Equation parent;
-    private readonly EquationDelegate parentEqu;
+    protected readonly Equation parent;
+    protected readonly EquationDelegate parentEqu;
 
-    private readonly double length;
+    protected readonly double length;
 
     public TangentLine(double length, double position, Equation parent)
     {
@@ -28,7 +28,7 @@ public class TangentLine : Graphable
         return [MakeSlopeLine(point, DerivativeAtPoint(Position)),
                 new GraphUiCircle(point, 8)];
     }
-    private GraphLine MakeSlopeLine(Float2 position, double slope)
+    protected GraphLine MakeSlopeLine(Float2 position, double slope)
     {
         double dirX = length, dirY = slope * length;
         double magnitude = Math.Sqrt(dirX * dirX + dirY * dirY);
@@ -38,7 +38,7 @@ public class TangentLine : Graphable
 
         return new(new(position.x + dirX, position.y + dirY), new(position.x - dirX, position.y - dirY));
     }
-    private double DerivativeAtPoint(double x)
+    protected double DerivativeAtPoint(double x)
     {
         const double step = 1e-3;
         return (parentEqu(x + step) - parentEqu(x)) / step;

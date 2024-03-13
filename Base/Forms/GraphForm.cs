@@ -7,6 +7,10 @@ namespace Graphing.Forms;
 
 public partial class GraphForm : Form
 {
+    public static readonly Color MainAxisColor = Color.Black;
+    public static readonly Color SemiAxisColor = Color.FromArgb(unchecked((int)0xFF_999999));
+    public static readonly Color QuarterAxisColor = Color.FromArgb(unchecked((int)0xFF_E0E0E0));
+
     public Float2 ScreenCenter { get; private set; }
     public Float2 Dpi { get; private set; }
 
@@ -97,7 +101,7 @@ public partial class GraphForm : Form
         double axisScale = Math.Pow(2, Math.Round(Math.Log2(ZoomLevel)));
 
         // Draw horizontal/vertical quarter-axis.
-        Brush quarterBrush = new SolidBrush(Color.FromArgb(unchecked((int)0xFF_E0E0E0)));
+        Brush quarterBrush = new SolidBrush(QuarterAxisColor);
         Pen quarterPen = new(quarterBrush, 2);
 
         for (double x = Math.Ceiling(MinVisibleGraph.x * 4 / axisScale) * axisScale / 4; x <= Math.Floor(MaxVisibleGraph.x * 4 / axisScale) * axisScale / 4; x += axisScale / 4)
@@ -114,7 +118,7 @@ public partial class GraphForm : Form
         }
 
         // Draw horizontal/vertical semi-axis.
-        Brush semiBrush = new SolidBrush(Color.FromArgb(unchecked((int)0xFF_999999)));
+        Brush semiBrush = new SolidBrush(SemiAxisColor);
         Pen semiPen = new(semiBrush, 2);
 
         for (double x = Math.Ceiling(MinVisibleGraph.x / axisScale) * axisScale; x <= Math.Floor(MaxVisibleGraph.x / axisScale) * axisScale; x += axisScale)
@@ -130,7 +134,7 @@ public partial class GraphForm : Form
             g.DrawLine(semiPen, startPos, endPos);
         }
 
-        Brush mainLineBrush = new SolidBrush(Color.Black);
+        Brush mainLineBrush = new SolidBrush(MainAxisColor);
         Pen mainLinePen = new(mainLineBrush, 3);
 
         // Draw the main axis (on top of the semi axis).
@@ -251,14 +255,14 @@ public partial class GraphForm : Form
             colorItem.Click += (o, e) => GraphColorPickerButton_Click(able);
             MenuColors.DropDownItems.Add(colorItem);
 
-            if (able is Equation)
+            if (able is Equation equ)
             {
                 ToolStripMenuItem derivativeItem = new()
                 {
                     ForeColor = able.Color,
                     Text = able.Name
                 };
-                derivativeItem.Click += (o, e) => EquationComputeDerivative_Click((able as Equation)!);
+                derivativeItem.Click += (o, e) => EquationComputeDerivative_Click(equ);
                 MenuEquationsDerivative.DropDownItems.Add(derivativeItem);
 
                 ToolStripMenuItem integralItem = new()
@@ -266,7 +270,7 @@ public partial class GraphForm : Form
                     ForeColor = able.Color,
                     Text = able.Name
                 };
-                integralItem.Click += (o, e) => EquationComputeIntegral_Click((able as Equation)!);
+                integralItem.Click += (o, e) => EquationComputeIntegral_Click(equ);
                 MenuEquationsIntegral.DropDownItems.Add(integralItem);
             }
         }
@@ -361,23 +365,13 @@ public partial class GraphForm : Form
 
     private void MenuMiscCaches_Click(object? sender, EventArgs e)
     {
-        // TODO: Replace with a form with a pie chart of the use by equation
-        //       and the ability to reset them.
-        StringBuilder message = new();
-        long total = 0;
-        foreach (Graphable able in ables)
+        ViewCacheForm cacheForm = new(this)
         {
-            long size = able.GetCacheBytes();
-            message.AppendLine($"{able.Name}: {size.FormatAsBytes()}");
-            total += size;
-        }
+            StartPosition = FormStartPosition.Manual
+        };
 
-        message.AppendLine($"\nTotal: {total.FormatAsBytes()}\n\nErase cache?");
-
-        DialogResult result = MessageBox.Show(message.ToString(), "Graph Caches", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
-        if (result == DialogResult.Yes)
-        {
-            foreach (Graphable able in ables) able.EraseCache();
-        }
+        cacheForm.Location = new Point(Location.X + ClientRectangle.Width + 10,
+                                       Location.Y + (ClientRectangle.Height - cacheForm.ClientRectangle.Height) / 2);
+        cacheForm.Show();
     }
 }

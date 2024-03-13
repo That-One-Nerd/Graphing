@@ -7,8 +7,8 @@ public class ColumnTable : Graphable
 {
     private static int tableNum;
 
-    private readonly Dictionary<double, double> tableXY;
-    private readonly double width;
+    protected readonly Dictionary<double, double> tableXY;
+    protected readonly double width;
 
     public ColumnTable(double width, Dictionary<double, double> tableXY)
     {
