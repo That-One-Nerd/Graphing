@@ -12,9 +12,9 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>ThatOneNerd.Graphing</PackageId>
     <Title>ThatOneNerd.Graphing</Title>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Authors>That_One_Nerd</Authors>
-    <Description>A fairly adept graphing calculator made in Windows Forms. </Description>
+    <Description>A fairly adept graphing calculator made in Windows Forms.</Description>
     <Copyright>MIT</Copyright>
     <RepositoryUrl>https://github.com/That-One-Nerd/Graphing</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -22,6 +22,8 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageReleaseNotes>View the GitHub release for the changelog:
+https://github.com/That-One-Nerd/Graphing/releases/tag/1.1.0</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

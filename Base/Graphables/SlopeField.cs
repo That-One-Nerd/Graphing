@@ -1,4 +1,5 @@
 ﻿using Graphing.Forms;
+using Graphing.Parts;
 
 namespace Graphing.Graphables;
 
@@ -6,8 +7,10 @@ public class SlopeField : Graphable
 {
     private static int slopeFieldNum;
 
-    private readonly SlopeFieldsDelegate equ;
-    private readonly double detail;
+    protected readonly SlopeFieldsDelegate equ;
+    protected readonly int detail;
+
+    protected readonly List<(Float2, GraphLine)> cache;
 
     public SlopeField(int detail, SlopeFieldsDelegate equ)
     {
@@ -16,25 +19,26 @@ public class SlopeField : Graphable
 
         this.equ = equ;
         this.detail = detail;
+        cache = [];
     }
 
-    public override IEnumerable<Line2d> GetItemsToRender(in GraphForm graph)
+    public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
     {
-        List<Line2d> lines = [];
+        double epsilon = 1 / (detail * 2.0);
+        List<IGraphPart> lines = [];
 
-        for (double x = Math.Ceiling(graph.MinVisibleGraph.x - 1); x < graph.MaxVisibleGraph.x + 1; x += 1 / detail)
+        for (double x = Math.Ceiling(graph.MinVisibleGraph.x - 1); x < graph.MaxVisibleGraph.x + 1; x += 1.0 / detail)
         {
-            for (double y = Math.Ceiling(graph.MinVisibleGraph.y - 1); y < graph.MaxVisibleGraph.y + 1; y += 1 / detail)
+            for (double y = Math.Ceiling(graph.MinVisibleGraph.y - 1); y < graph.MaxVisibleGraph.y + 1; y += 1.0 / detail)
             {
-                double slope = equ(x, y);
-                lines.Add(MakeSlopeLine(new Float2(x, y), slope));
+                lines.Add(GetFromCache(epsilon, x, y));
             }
         }
 
         return lines;
     }
 
-    private Line2d MakeSlopeLine(Float2 position, double slope)
+    protected GraphLine MakeSlopeLine(Float2 position, double slope)
     {
         double size = detail;
 
@@ -46,6 +50,30 @@ public class SlopeField : Graphable
 
         return new(new(position.x + dirX, position.y + dirY), new(position.x - dirX, position.y - dirY));
     }
+    protected GraphLine GetFromCache(double epsilon, double x, double y)
+    {
+        // Probably no binary search here, though maybe it could be done
+        // in terms of just one axis.
+
+        foreach ((Float2 p, GraphLine l) in cache)
+        {
+            double diffX = Math.Abs(p.x - x),
+                   diffY = Math.Abs(p.y - y);
+
+            if (diffX < epsilon && diffY < epsilon) return l;
+        }
+
+        // Create a new value.
+        double slope = equ(x, y);
+        GraphLine result = MakeSlopeLine(new Float2(x, y), slope);
+        cache.Add((new Float2(x, y), result));
+        return result;
+    }
+
+    public override Graphable DeepCopy() => new SlopeField(detail, equ);
+
+    public override void EraseCache() => cache.Clear();
+    public override long GetCacheBytes() => cache.Count * 48;
 }
 
 public delegate double SlopeFieldsDelegate(double x, double y);

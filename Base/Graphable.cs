@@ -1,4 +1,5 @@
 ﻿using Graphing.Forms;
+using Graphing.Parts;
 
 namespace Graphing;
 
@@ -26,5 +27,10 @@ public abstract class Graphable
         Name = "Unnamed Graphable.";
     }
 
-    public abstract IEnumerable<Line2d> GetItemsToRender(in GraphForm graph);
+    public abstract IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph);
+
+    public abstract Graphable DeepCopy();
+
+    public abstract void EraseCache();
+    public abstract long GetCacheBytes();
 }

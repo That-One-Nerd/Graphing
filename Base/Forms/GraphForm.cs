@@ -1,9 +1,16 @@
-﻿using Graphing.Graphables;
+﻿using Graphing.Extensions;
+using Graphing.Graphables;
+using System.Drawing.Drawing2D;
+using System.Text;
 
 namespace Graphing.Forms;
 
 public partial class GraphForm : Form
 {
+    public static readonly Color MainAxisColor = Color.Black;
+    public static readonly Color SemiAxisColor = Color.FromArgb(unchecked((int)0xFF_999999));
+    public static readonly Color QuarterAxisColor = Color.FromArgb(unchecked((int)0xFF_E0E0E0));
+
     public Float2 ScreenCenter { get; private set; }
     public Float2 Dpi { get; private set; }
 
@@ -94,7 +101,7 @@ public partial class GraphForm : Form
         double axisScale = Math.Pow(2, Math.Round(Math.Log2(ZoomLevel)));
 
         // Draw horizontal/vertical quarter-axis.
-        Brush quarterBrush = new SolidBrush(Color.FromArgb(unchecked((int)0xFF_E0E0E0)));
+        Brush quarterBrush = new SolidBrush(QuarterAxisColor);
         Pen quarterPen = new(quarterBrush, 2);
 
         for (double x = Math.Ceiling(MinVisibleGraph.x * 4 / axisScale) * axisScale / 4; x <= Math.Floor(MaxVisibleGraph.x * 4 / axisScale) * axisScale / 4; x += axisScale / 4)
@@ -111,7 +118,7 @@ public partial class GraphForm : Form
         }
 
         // Draw horizontal/vertical semi-axis.
-        Brush semiBrush = new SolidBrush(Color.FromArgb(unchecked((int)0xFF_999999)));
+        Brush semiBrush = new SolidBrush(SemiAxisColor);
         Pen semiPen = new(semiBrush, 2);
 
         for (double x = Math.Ceiling(MinVisibleGraph.x / axisScale) * axisScale; x <= Math.Floor(MaxVisibleGraph.x / axisScale) * axisScale; x += axisScale)
@@ -127,7 +134,7 @@ public partial class GraphForm : Form
             g.DrawLine(semiPen, startPos, endPos);
         }
 
-        Brush mainLineBrush = new SolidBrush(Color.Black);
+        Brush mainLineBrush = new SolidBrush(MainAxisColor);
         Pen mainLinePen = new(mainLineBrush, 3);
 
         // Draw the main axis (on top of the semi axis).
@@ -143,6 +150,7 @@ public partial class GraphForm : Form
     protected override void OnPaint(PaintEventArgs e)
     {
         Graphics g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.HighQuality;
 
         Brush background = new SolidBrush(Color.White);
         g.FillRectangle(background, e.ClipRectangle);
@@ -152,19 +160,9 @@ public partial class GraphForm : Form
         // Draw the actual graphs.
         for (int i = 0; i < ables.Count; i++)
         {
-            IEnumerable<Line2d> lines = ables[i].GetItemsToRender(this);
+            IEnumerable<IGraphPart> lines = ables[i].GetItemsToRender(this);
             Brush graphBrush = new SolidBrush(ables[i].Color);
-            Pen penBrush = new(graphBrush, 3);
-
-            foreach (Line2d l in lines)
-            {
-                if (!double.IsNormal(l.a.x) || !double.IsNormal(l.a.y) ||
-                    !double.IsNormal(l.b.x) || !double.IsNormal(l.b.y)) continue;
-
-                Int2 start = GraphSpaceToScreenSpace(l.a),
-                     end = GraphSpaceToScreenSpace(l.b);
-                g.DrawLine(penBrush, start, end);
-            }
+            foreach (IGraphPart gp in lines) gp.Render(this, g, graphBrush);
         }
 
         base.OnPaint(e);
@@ -175,9 +173,9 @@ public partial class GraphForm : Form
         Invalidate(false);
     }
 
-    public void Graph(Graphable able)
+    public void Graph(params Graphable[] able)
     {
-        ables.Add(able);
+        ables.AddRange(able);
         RegenerateMenuItems();
         Invalidate(false);
     }
@@ -257,14 +255,14 @@ public partial class GraphForm : Form
             colorItem.Click += (o, e) => GraphColorPickerButton_Click(able);
             MenuColors.DropDownItems.Add(colorItem);
 
-            if (able is Equation)
+            if (able is Equation equ)
             {
                 ToolStripMenuItem derivativeItem = new()
                 {
                     ForeColor = able.Color,
                     Text = able.Name
                 };
-                derivativeItem.Click += (o, e) => EquationComputeDerivative_Click((able as Equation)!);
+                derivativeItem.Click += (o, e) => EquationComputeDerivative_Click(equ);
                 MenuEquationsDerivative.DropDownItems.Add(derivativeItem);
 
                 ToolStripMenuItem integralItem = new()
@@ -272,7 +270,7 @@ public partial class GraphForm : Form
                     ForeColor = able.Color,
                     Text = able.Name
                 };
-                integralItem.Click += (o, e) => EquationComputeIntegral_Click((able as Equation)!);
+                integralItem.Click += (o, e) => EquationComputeIntegral_Click(equ);
                 MenuEquationsIntegral.DropDownItems.Add(integralItem);
             }
         }
@@ -346,7 +344,7 @@ public partial class GraphForm : Form
         static double Integrate(EquationDelegate e, double lower, double upper)
         {
             // TODO: a better rendering method could make this much faster.
-            const double step = 1e-1;
+            const double step = 1e-2;
 
             double factor = 1;
             if (upper < lower)
@@ -363,5 +361,17 @@ public partial class GraphForm : Form
 
             return sum * factor;
         }
+    }
+
+    private void MenuMiscCaches_Click(object? sender, EventArgs e)
+    {
+        ViewCacheForm cacheForm = new(this)
+        {
+            StartPosition = FormStartPosition.Manual
+        };
+
+        cacheForm.Location = new Point(Location.X + ClientRectangle.Width + 10,
+                                       Location.Y + (ClientRectangle.Height - cacheForm.ClientRectangle.Height) / 2);
+        cacheForm.Show();
     }
 }
