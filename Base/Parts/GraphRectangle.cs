@@ -2,7 +2,7 @@
 
 namespace Graphing.Parts;
 
-public struct GraphRectangle : IGraphPart
+public record struct GraphRectangle : IGraphPart
 {
     public Float2 min, max;
 
