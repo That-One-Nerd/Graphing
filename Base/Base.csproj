@@ -24,7 +24,6 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PackageReleaseNotes>View the GitHub release for the changelog:
 https://github.com/That-One-Nerd/Graphing/releases/tag/1.1.0</PackageReleaseNotes>
-    <PackAsTool>True</PackAsTool>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
