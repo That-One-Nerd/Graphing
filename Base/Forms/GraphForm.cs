@@ -1,7 +1,5 @@
-﻿using Graphing.Extensions;
-using Graphing.Graphables;
+﻿using Graphing.Graphables;
 using System.Drawing.Drawing2D;
-using System.Text;
 
 namespace Graphing.Forms;
 
@@ -10,6 +8,7 @@ public partial class GraphForm : Form
     public static readonly Color MainAxisColor = Color.Black;
     public static readonly Color SemiAxisColor = Color.FromArgb(unchecked((int)0xFF_999999));
     public static readonly Color QuarterAxisColor = Color.FromArgb(unchecked((int)0xFF_E0E0E0));
+    public static readonly Color UnitsTextColor = Color.Black;
 
     public Float2 ScreenCenter { get; private set; }
     public Float2 Dpi { get; private set; }
@@ -23,7 +22,7 @@ public partial class GraphForm : Form
         {
             double oldZoom = ZoomLevel;
 
-            _zoomLevel = Math.Clamp(value, 1e-2, 1e3);
+            _zoomLevel = Math.Clamp(value, 1e-5, 1e3);
 
             int totalSegments = 0;
             foreach (Graphable able in ables) totalSegments += able.GetItemsToRender(this).Count();
@@ -151,6 +150,44 @@ public partial class GraphForm : Form
         g.DrawLine(mainLinePen, startCenterX, endCenterX);
         g.DrawLine(mainLinePen, startCenterY, endCenterY);
     }
+    protected virtual void PaintUnits(Graphics g)
+    {
+        double axisScale = Math.Pow(2, Math.Round(Math.Log(ZoomLevel, 2)));
+        Brush textBrush = new SolidBrush(UnitsTextColor);
+        Font textFont = new(Font.Name, 9, FontStyle.Regular);
+
+        // X-axis
+        int minX = (int)(DpiFloat * 50 / 192),
+            maxX = ClientRectangle.Height - (int)(DpiFloat * 40 / 192);
+        for (double x = Math.Ceiling(MinVisibleGraph.x / axisScale) * axisScale; x <= MaxVisibleGraph.x; x += axisScale)
+        {
+            if (x == 0) x = 0; // Fixes -0
+
+            Int2 screenPos = GraphSpaceToScreenSpace(new Float2(x, 0));
+
+            if (screenPos.y < minX) screenPos.y = minX;
+            else if (screenPos.y > maxX) screenPos.y = maxX;
+
+            g.DrawString($"{x}", textFont, textBrush, screenPos.x, screenPos.y);
+        }
+
+        // Y-axis
+        int minY = (int)(DpiFloat * 10 / 192);
+        for (double y = Math.Ceiling(MinVisibleGraph.y / axisScale) * axisScale; y <= MaxVisibleGraph.y; y += axisScale)
+        {
+            if (y == 0) continue;
+
+            Int2 screenPos = GraphSpaceToScreenSpace(new Float2(0, y));
+
+            string result = y.ToString();
+            int maxY = ClientRectangle.Width - (int)(DpiFloat * (textFont.Height * result.Length * 0.40 + 15) / 192);
+
+            if (screenPos.x < minY) screenPos.x = minY;
+            else if (screenPos.x > maxY) screenPos.x = maxY;
+
+            g.DrawString($"{y}", textFont, textBrush, screenPos.x, screenPos.y);
+        }
+    }
 
     protected override void OnPaint(PaintEventArgs e)
     {
@@ -161,6 +198,7 @@ public partial class GraphForm : Form
         g.FillRectangle(background, e.ClipRectangle);
 
         PaintGrid(g);
+        PaintUnits(g);
 
         // Draw the actual graphs.
         for (int i = 0; i < ables.Count; i++)
@@ -232,7 +270,6 @@ public partial class GraphForm : Form
         ZoomLevel = 1;
         Invalidate(false);
     }
-
     private void GraphColorPickerButton_Click(Graphable able)
     {
         GraphColorPickerForm picker = new(this, able)
@@ -241,6 +278,13 @@ public partial class GraphForm : Form
         };
         picker.Location = new Point(Location.X + ClientRectangle.Width + 10,
                                     Location.Y + (ClientRectangle.Height - picker.ClientRectangle.Height) / 2);
+
+        if (picker.Location.X + picker.Width > Screen.FromControl(this).WorkingArea.Width)
+        {
+            picker.StartPosition = FormStartPosition.WindowsDefaultLocation;
+        }
+
+        picker.TopMost = true;
         picker.ShowDialog();
         RegenerateMenuItems();
     }
@@ -292,26 +336,22 @@ public partial class GraphForm : Form
                                     Location.Y + (ClientRectangle.Height - picker.ClientRectangle.Height) / 2);
         picker.ShowDialog();
     }
-
     private void ButtonViewportSetCenter_Click(object? sender, EventArgs e)
     {
         MessageBox.Show("TODO", "Set Center Position", MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
-
     private void ButtonViewportReset_Click(object? sender, EventArgs e)
     {
         ScreenCenter = new Float2(0, 0);
         ZoomLevel = 1;
         Invalidate(false);
     }
-
     private void ButtonViewportResetWindow_Click(object? sender, EventArgs e)
     {
         Location = initialWindowPos;
         Size = initialWindowSize;
         WindowState = FormWindowState.Normal;
     }
-
     private void EquationComputeDerivative_Click(Equation equation)
     {
         EquationDelegate equ = equation.GetDelegate();
@@ -332,7 +372,6 @@ public partial class GraphForm : Form
             return x => (e(x + step) - e(x)) / step;
         }
     }
-
     private void EquationComputeIntegral_Click(Equation equation)
     {
         EquationDelegate equ = equation.GetDelegate();
@@ -378,6 +417,12 @@ public partial class GraphForm : Form
 
         cacheForm.Location = new Point(Location.X + ClientRectangle.Width + 10,
                                        Location.Y + (ClientRectangle.Height - cacheForm.ClientRectangle.Height) / 2);
+
+        if (cacheForm.Location.X + cacheForm.Width > Screen.FromControl(this).WorkingArea.Width)
+        {
+            cacheForm.StartPosition = FormStartPosition.WindowsDefaultLocation;
+        }
+        cacheForm.TopMost = true;
         cacheForm.Show();
     }
 }
