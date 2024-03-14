@@ -14,6 +14,8 @@ public partial class GraphForm : Form
     public Float2 ScreenCenter { get; private set; }
     public Float2 Dpi { get; private set; }
 
+    public float DpiFloat { get; private set; }
+
     public double ZoomLevel
     {
         get => _zoomLevel;
@@ -57,6 +59,9 @@ public partial class GraphForm : Form
         Graphics tempG = CreateGraphics();
         Dpi = new(tempG.DpiX, tempG.DpiY);
         tempG.Dispose();
+
+        DpiFloat = (float)((Dpi.x + Dpi.y) / 2);
+
         ables = [];
         ZoomLevel = 1;
         initialWindowPos = Location;
@@ -102,7 +107,7 @@ public partial class GraphForm : Form
 
         // Draw horizontal/vertical quarter-axis.
         Brush quarterBrush = new SolidBrush(QuarterAxisColor);
-        Pen quarterPen = new(quarterBrush, 2);
+        Pen quarterPen = new(quarterBrush, DpiFloat * 2 / 192);
 
         for (double x = Math.Ceiling(MinVisibleGraph.x * 4 / axisScale) * axisScale / 4; x <= Math.Floor(MaxVisibleGraph.x * 4 / axisScale) * axisScale / 4; x += axisScale / 4)
         {
@@ -119,7 +124,7 @@ public partial class GraphForm : Form
 
         // Draw horizontal/vertical semi-axis.
         Brush semiBrush = new SolidBrush(SemiAxisColor);
-        Pen semiPen = new(semiBrush, 2);
+        Pen semiPen = new(semiBrush, DpiFloat * 2 / 192);
 
         for (double x = Math.Ceiling(MinVisibleGraph.x / axisScale) * axisScale; x <= Math.Floor(MaxVisibleGraph.x / axisScale) * axisScale; x += axisScale)
         {
@@ -135,7 +140,7 @@ public partial class GraphForm : Form
         }
 
         Brush mainLineBrush = new SolidBrush(MainAxisColor);
-        Pen mainLinePen = new(mainLineBrush, 3);
+        Pen mainLinePen = new(mainLineBrush, DpiFloat * 3 / 192);
 
         // Draw the main axis (on top of the semi axis).
         Int2 startCenterY = GraphSpaceToScreenSpace(new Float2(0, MinVisibleGraph.y)),
@@ -162,7 +167,8 @@ public partial class GraphForm : Form
         {
             IEnumerable<IGraphPart> lines = ables[i].GetItemsToRender(this);
             Brush graphBrush = new SolidBrush(ables[i].Color);
-            foreach (IGraphPart gp in lines) gp.Render(this, g, graphBrush);
+            Pen graphPen = new(graphBrush, DpiFloat * 3 / 192);
+            foreach (IGraphPart gp in lines) gp.Render(this, g, graphPen);
         }
 
         base.OnPaint(e);

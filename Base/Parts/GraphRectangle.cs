@@ -25,7 +25,7 @@ public record struct GraphRectangle : IGraphPart
         max = max
     };
 
-    public void Render(in GraphForm form, in Graphics g, in Brush brush)
+    public void Render(in GraphForm form, in Graphics g, in Pen pen)
     {
         if (!double.IsFinite(max.x) || !double.IsFinite(max.y) ||
             !double.IsFinite(min.x) || !double.IsFinite(min.y)) return;
@@ -40,6 +40,6 @@ public record struct GraphRectangle : IGraphPart
                         start.y - end.y);
 
         if (size.x == 0 || size.y == 0) return;
-        g.FillRectangle(brush, new Rectangle(start.x, end.y, size.x, size.y));
+        g.FillRectangle(pen.Brush, new Rectangle(start.x, end.y, size.x, size.y));
     }
 }

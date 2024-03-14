@@ -32,6 +32,10 @@ public partial class ViewCacheForm : Form
             CachePie.Values.Add((able.Color, thisBytes));
             totalBytes += thisBytes;
 
+            int buttonHeight = (int)(refForm.DpiFloat * 46 / 192),
+                buttonWidth = (int)(refForm.DpiFloat * 92 / 192),
+                buttonSpaced = (int)(refForm.DpiFloat * 98 / 192);
+
             if (index < labelCache.Count)
             {
                 Label reuseLabel = labelCache[index];
@@ -45,9 +49,9 @@ public partial class ViewCacheForm : Form
                     Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right,
                     AutoEllipsis = true,
                     ForeColor = able.Color,
-                    Location = new Point(0, labelCache.Count * 46),
+                    Location = new Point(0, labelCache.Count * buttonHeight),
                     Parent = SpecificCachePanel,
-                    Size = new Size(SpecificCachePanel.Width - 98, 46),
+                    Size = new Size(SpecificCachePanel.Width - buttonSpaced, buttonHeight),
                     Text = $"{able.Name}: {thisBytes.FormatAsBytes()}",
                     TextAlign = ContentAlignment.MiddleLeft,
                 };
@@ -59,9 +63,9 @@ public partial class ViewCacheForm : Form
                 Button newButton = new()
                 {
                     Anchor = AnchorStyles.Top | AnchorStyles.Right,
-                    Location = new Point(SpecificCachePanel.Width - 92, buttonCache.Count * 46),
+                    Location = new Point(SpecificCachePanel.Width - buttonWidth, buttonCache.Count * buttonHeight),
                     Parent = SpecificCachePanel,
-                    Size = new Size(92, 46),
+                    Size = new Size(buttonWidth, buttonHeight),
                     Text = "Clear"
                 };
                 newButton.Click += (o, e) => EraseSpecificGraphable_Click(able);

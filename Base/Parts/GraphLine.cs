@@ -18,15 +18,13 @@ public record struct GraphLine : IGraphPart
         this.b = b;
     }
 
-    public readonly void Render(in GraphForm form, in Graphics g, in Brush brush)
+    public readonly void Render(in GraphForm form, in Graphics g, in Pen pen)
     {
         if (!double.IsFinite(a.x) || !double.IsFinite(a.y) ||
             !double.IsFinite(b.x) || !double.IsFinite(b.y)) return;
 
         Int2 start = form.GraphSpaceToScreenSpace(a),
              end = form.GraphSpaceToScreenSpace(b);
-
-        Pen pen = new(brush, 3);
         g.DrawLine(pen, start, end);
     }
 }

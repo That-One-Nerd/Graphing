@@ -6,11 +6,17 @@ public partial class PieChart : UserControl
 {
     public List<(Color, double)> Values { get; set; }
 
+    public float DpiFloat { get; private set; }
+
     public PieChart()
     {
         SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
         SetStyle(ControlStyles.AllPaintingInWmPaint, true);
         SetStyle(ControlStyles.UserPaint, true);
+
+        Graphics tempG = CreateGraphics();
+        DpiFloat = (tempG.DpiX + tempG.DpiY) / 2;
+        tempG.Dispose();
 
         Values = [];
         InitializeComponent();
@@ -41,7 +47,7 @@ public partial class PieChart : UserControl
         }
 
         // Draw the outline.
-        Pen outlinePartsPen = new(Color.FromArgb(unchecked((int)0xFF_202020)), 3);
+        Pen outlinePartsPen = new(Color.FromArgb(unchecked((int)0xFF_202020)), DpiFloat * 3 / 192);
         current = 0;
         foreach ((Color, double value) item in Values)
         {
@@ -53,7 +59,7 @@ public partial class PieChart : UserControl
         }
 
         // Outline
-        Pen outlinePen = new(Color.FromArgb(unchecked((int)0xFF_202020)), 5);
+        Pen outlinePen = new(Color.FromArgb(unchecked((int)0xFF_202020)), DpiFloat * 5 / 192);
         g.DrawEllipse(outlinePen, rect);
     }
 }
