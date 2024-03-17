@@ -96,6 +96,30 @@ public class Equation : Graphable
     public override Graphable DeepCopy() => new Equation(equ);
 
     public override long GetCacheBytes() => cache.Count * 16;
+
+    public override bool ShouldSelectGraphable(in GraphForm graph, Float2 graphMousePos, double factor)
+    {
+        Int2 screenMousePos = graph.GraphSpaceToScreenSpace(graphMousePos);
+
+        (_, _, int index) = NearestCachedPoint(graphMousePos.x);
+        Int2 screenCachePos = graph.GraphSpaceToScreenSpace(cache[index]);
+
+        double allowedDist = factor * graph.DpiFloat * 80 / 192;
+
+        Int2 dist = new(screenCachePos.x - screenMousePos.x,
+                        screenCachePos.y - screenMousePos.y);
+        double totalDist = Math.Sqrt(dist.x * dist.x + dist.y * dist.y);
+        return totalDist <= allowedDist;
+    }
+    public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos)
+    {
+        return new(graphMousePos.x, GetFromCache(graphMousePos.x, 0.001));
+    }
+
+    public override void Preload(Float2 xRange, Float2 yRange)
+    {
+        for (double x = xRange.x; x <= xRange.y; x += 1e-3) GetFromCache(x, 1e-4);
+    }
 }
 
 public delegate double EquationDelegate(double x);

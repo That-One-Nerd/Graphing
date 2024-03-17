@@ -74,6 +74,11 @@ public class SlopeField : Graphable
 
     public override void EraseCache() => cache.Clear();
     public override long GetCacheBytes() => cache.Count * 48;
+
+    public override bool ShouldSelectGraphable(in GraphForm graph, Float2 graphMousePos, double factor) => false;
+    public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos) => default;
+
+    public override void Preload(Float2 xRange, Float2 yRange) { }
 }
 
 public delegate double SlopeFieldsDelegate(double x, double y);

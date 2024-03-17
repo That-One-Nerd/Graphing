@@ -1,4 +1,5 @@
 ﻿using Graphing.Graphables;
+using Graphing.Parts;
 using System.Drawing.Drawing2D;
 
 namespace Graphing.Forms;
@@ -200,6 +201,10 @@ public partial class GraphForm : Form
         PaintGrid(g);
         PaintUnits(g);
 
+        Point clientMousePos = PointToClient(Cursor.Position);
+        Float2 graphMousePos = ScreenSpaceToGraphSpace(new(clientMousePos.X,
+                                                           clientMousePos.Y));
+
         // Draw the actual graphs.
         for (int i = 0; i < ables.Count; i++)
         {
@@ -207,6 +212,18 @@ public partial class GraphForm : Form
             Brush graphBrush = new SolidBrush(ables[i].Color);
             Pen graphPen = new(graphBrush, DpiFloat * 3 / 192);
             foreach (IGraphPart gp in lines) gp.Render(this, g, graphPen);
+
+            // Equation selection detection.
+            // This system lets you select multiple graphs, and that's cool by me.
+            if (ableDrag)
+            {
+                if (ables[i].ShouldSelectGraphable(this, graphMousePos, 2.5))
+                {
+                    Float2 selectedPoint = ables[i].GetSelectedPoint(this, graphMousePos);
+                    GraphUiCircle select = new(selectedPoint, 8);
+                    select.Render(this, g, graphPen);
+                }
+            }
         }
 
         base.OnPaint(e);
@@ -227,11 +244,28 @@ public partial class GraphForm : Form
     private bool mouseDrag = false;
     private Int2 initialMouseLocation;
     private Float2 initialScreenCenter;
+
+    private bool ableDrag = false;
     protected override void OnMouseDown(MouseEventArgs e)
     {
-        mouseDrag = true;
-        initialMouseLocation = new Int2(Cursor.Position.X, Cursor.Position.Y);
-        initialScreenCenter = ScreenCenter;
+        if (!mouseDrag)
+        {
+            Point clientMousePos = PointToClient(Cursor.Position);
+            Float2 graphMousePos = ScreenSpaceToGraphSpace(new(clientMousePos.X,
+                                                               clientMousePos.Y));
+            foreach (Graphable able in Graphables)
+            {
+                if (able.ShouldSelectGraphable(this, graphMousePos, 1)) ableDrag = true;
+            }
+            if (ableDrag) Invalidate(false);
+        }
+
+        if (!ableDrag)
+        {
+            mouseDrag = true;
+            initialMouseLocation = new Int2(Cursor.Position.X, Cursor.Position.Y);
+            initialScreenCenter = ScreenCenter;
+        }
     }
     protected override void OnMouseUp(MouseEventArgs e)
     {
@@ -242,9 +276,10 @@ public partial class GraphForm : Form
             Float2 graphDiff = new(pixelDiff.x * ZoomLevel / Dpi.x, pixelDiff.y * ZoomLevel / Dpi.y);
             ScreenCenter = new(initialScreenCenter.x + graphDiff.x,
                                initialScreenCenter.y + graphDiff.y);
-            Invalidate(false);
         }
         mouseDrag = false;
+        ableDrag = false;
+        Invalidate(false);
     }
     protected override void OnMouseMove(MouseEventArgs e)
     {
@@ -257,6 +292,7 @@ public partial class GraphForm : Form
                                initialScreenCenter.y + graphDiff.y);
             Invalidate(false);
         }
+        else if (ableDrag) Invalidate(false);
     }
     protected override void OnMouseWheel(MouseEventArgs e)
     {
@@ -424,5 +460,18 @@ public partial class GraphForm : Form
         }
         cacheForm.TopMost = true;
         cacheForm.Show();
+    }
+    private void MiscMenuPreload_Click(object sender, EventArgs e)
+    {
+        Float2 min = MinVisibleGraph, max = MaxVisibleGraph;
+        Float2 add = new(max.x - min.x, max.y - min.y);
+        add.x *= 0.75; // Expansion
+        add.y *= 0.75; //
+
+        Float2 xRange = new(min.x - add.x, max.x + add.x),
+               yRange = new(min.y - add.y, max.y + add.y);
+
+        foreach (Graphable able in Graphables) able.Preload(xRange, yRange);
+        Invalidate(false);
     }
 }

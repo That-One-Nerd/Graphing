@@ -1,5 +1,4 @@
 ﻿using Graphing.Forms;
-using Graphing.Parts;
 
 namespace Graphing;
 
@@ -33,4 +32,8 @@ public abstract class Graphable
 
     public abstract void EraseCache();
     public abstract long GetCacheBytes();
+    public abstract void Preload(Float2 xRange, Float2 yRange);
+
+    public abstract bool ShouldSelectGraphable(in GraphForm graph, Float2 graphMousePos, double factor);
+    public abstract Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos);
 }
