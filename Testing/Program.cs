@@ -10,12 +10,12 @@ internal static class Program
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        Application.SetHighDpiMode(HighDpiMode.SystemAware);
+        Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
 
         GraphForm graph = new("One Of The Graphing Calculators Of All Time");
 
-        Equation possibleA = new(x => x * x * x);
-        SlopeField sf = new(2, (x, y) => 1 / x);
+        Equation possibleA = new(Math.Sin);
+        SlopeField sf = new(2, (x, y) => Math.Cos(x));
         TangentLine tl = new(2, 2, possibleA);
         graph.Graph(possibleA, sf, tl);
 

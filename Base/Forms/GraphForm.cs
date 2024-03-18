@@ -206,22 +206,38 @@ public partial class GraphForm : Form
                                                            clientMousePos.Y));
 
         // Draw the actual graphs.
+        Pen[] graphPens = new Pen[ables.Count];
         for (int i = 0; i < ables.Count; i++)
         {
             IEnumerable<IGraphPart> lines = ables[i].GetItemsToRender(this);
             Brush graphBrush = new SolidBrush(ables[i].Color);
             Pen graphPen = new(graphBrush, DpiFloat * 3 / 192);
+            graphPens[i] = graphPen;
             foreach (IGraphPart gp in lines) gp.Render(this, g, graphPen);
+        }
 
-            // Equation selection detection.
-            // This system lets you select multiple graphs, and that's cool by me.
-            if (ableDrag)
+        // Equation selection detection.
+        // This system lets you select multiple graphs, and that's cool by me.
+        if (ableDrag)
+        {
+            Font textFont = new(Font.Name, 8, FontStyle.Bold);
+            for (int i = 0; i < ables.Count; i++)
             {
                 if (ables[i].ShouldSelectGraphable(this, graphMousePos, 2.5))
                 {
                     Float2 selectedPoint = ables[i].GetSelectedPoint(this, graphMousePos);
                     GraphUiCircle select = new(selectedPoint, 8);
-                    select.Render(this, g, graphPen);
+
+                    Int2 textPos = GraphSpaceToScreenSpace(select.center);
+                    textPos.y -= (int)(DpiFloat * 32 / 192);
+
+                    string content = $"({selectedPoint.x:0.00}, {selectedPoint.y:0.00})";
+
+                    SizeF textSize = g.MeasureString(content, textFont);
+                    g.FillRectangle(background, new Rectangle(textPos.x, textPos.y,
+                                         (int)textSize.Width, (int)textSize.Height));
+                    g.DrawString(content, textFont, graphPens[i].Brush, new Point(textPos.x, textPos.y));
+                    select.Render(this, g, graphPens[i]);
                 }
             }
         }

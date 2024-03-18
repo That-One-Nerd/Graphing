@@ -23,9 +23,11 @@ public record struct GraphUiCircle : IGraphPart
         if (!double.IsFinite(center.x) || !double.IsFinite(center.y) ||
             !double.IsFinite(radius) || radius == 0) return;
 
+        int rad = (int)(form.DpiFloat * radius / 192);
+
         Int2 centerPix = form.GraphSpaceToScreenSpace(center);
-        g.FillEllipse(pen.Brush, new Rectangle(new Point(centerPix.x - radius,
-                                                         centerPix.y - radius),
-                                            new Size(radius * 2, radius * 2)));
+        g.FillEllipse(pen.Brush, new Rectangle(new Point(centerPix.x - rad,
+                                                         centerPix.y - rad),
+                                               new Size(rad * 2, rad * 2)));
     }
 }
