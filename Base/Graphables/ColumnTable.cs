@@ -48,9 +48,6 @@ public class ColumnTable : Graphable
         return items;
     }
 
-    public override bool ShouldSelectGraphable(in GraphForm graph, Float2 graphMousePos, double factor) => false;
-    public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos) => default;
-
     // Nothing to preload, everything is already cached.
     public override void Preload(Float2 xRange, Float2 yRange, double step) { }
 }

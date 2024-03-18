@@ -14,8 +14,8 @@ internal static class Program
 
         GraphForm graph = new("One Of The Graphing Calculators Of All Time");
 
-        Equation possibleA = new(x => Math.Sin(x));
-        SlopeField sf = new(2, (x, y) => Math.Cos(x));
+        Equation possibleA = new(x => x * x * x);
+        SlopeField sf = new(2, (x, y) => 1 / x);
         TangentLine tl = new(2, 2, possibleA);
         graph.Graph(possibleA, sf, tl);
 
