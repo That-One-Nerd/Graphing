@@ -6,6 +6,10 @@ Currently, it doesn't have a whole lot of features, but I'll be adding more in t
 - Graph an equation (duh).
     - There are currently some rendering issues with asymptotes which will be focused on at some point.
 - Graph a slope field of a `dy/dx =` style equation.
+- View a tangent line of an equation.
+- Display a vertical bar graph.
+
+However, you can develop your own features as well.
 
 The system does not and likely will not (at least for a while) support text-to-equation parsing. You must import this project as a library and add graphs that way.
 

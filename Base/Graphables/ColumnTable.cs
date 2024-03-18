@@ -32,7 +32,6 @@ public class ColumnTable : Graphable
             tableXY.Add(x, equ(x));
     }
 
-    public override void EraseCache() { }
     public override long GetCacheBytes() => 16 * tableXY.Count;
 
     public override Graphable DeepCopy() => new ColumnTable(width / 0.75, tableXY.ToArray().ToDictionary());

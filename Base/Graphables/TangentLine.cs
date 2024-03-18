@@ -14,7 +14,7 @@ public class TangentLine : Graphable
             _position = value;
         }
     }
-    private double _position;
+    private double _position; // Private because it has exactly the same functionality as `Position`.
 
     protected readonly Equation parent;
     protected readonly EquationDelegate parentEqu;

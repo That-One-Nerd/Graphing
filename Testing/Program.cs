@@ -14,13 +14,14 @@ internal static class Program
 
         GraphForm graph = new("One Of The Graphing Calculators Of All Time");
 
-        Equation possibleA = new(x => x * x * x);
-        SlopeField sf = new(2, (x, y) => 3 * x * x);
-        TangentLine tl = new(5, 2, possibleA);
+        Equation possibleA = new(x => Math.Sin(x));
+        SlopeField sf = new(2, (x, y) => Math.Cos(x));
+        TangentLine tl = new(2, 2, possibleA);
         graph.Graph(possibleA, sf, tl);
 
-        // You can also now view and reset caches in the UI by going to
-        // Misc > View Caches.
+        // You can preload graphs in by going Misc > Preload Cache.
+        // Keep in mind this uses more memory than usual and can take
+        // some time.
 
         Application.Run(graph);
     }

@@ -111,10 +111,8 @@ public class Equation : Graphable
         double totalDist = Math.Sqrt(dist.x * dist.x + dist.y * dist.y);
         return totalDist <= allowedDist;
     }
-    public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos)
-    {
-        return new(graphMousePos.x, GetFromCache(graphMousePos.x, 0.001));
-    }
+    public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos) =>
+        new(graphMousePos.x, GetFromCache(graphMousePos.x, 1e-3));
 
     public override void Preload(Float2 xRange, Float2 yRange, double step)
     {
