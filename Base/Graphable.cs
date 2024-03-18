@@ -30,10 +30,10 @@ public abstract class Graphable
 
     public abstract Graphable DeepCopy();
 
-    public abstract void EraseCache();
-    public abstract long GetCacheBytes();
-    public abstract void Preload(Float2 xRange, Float2 yRange, double step);
+    public virtual void EraseCache() { }
+    public virtual long GetCacheBytes() => 0;
+    public virtual void Preload(Float2 xRange, Float2 yRange, double step) { }
 
-    public abstract bool ShouldSelectGraphable(in GraphForm graph, Float2 graphMousePos, double factor);
-    public abstract Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos);
+    public virtual bool ShouldSelectGraphable(in GraphForm graph, Float2 graphMousePos, double factor) => false;
+    public virtual Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos) => default;
 }
