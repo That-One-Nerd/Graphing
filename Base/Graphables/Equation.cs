@@ -116,9 +116,9 @@ public class Equation : Graphable
         return new(graphMousePos.x, GetFromCache(graphMousePos.x, 0.001));
     }
 
-    public override void Preload(Float2 xRange, Float2 yRange)
+    public override void Preload(Float2 xRange, Float2 yRange, double step)
     {
-        for (double x = xRange.x; x <= xRange.y; x += 1e-3) GetFromCache(x, 1e-4);
+        for (double x = xRange.x; x <= xRange.y; x += step) GetFromCache(x, step);
     }
 }
 

@@ -78,7 +78,16 @@ public class SlopeField : Graphable
     public override bool ShouldSelectGraphable(in GraphForm graph, Float2 graphMousePos, double factor) => false;
     public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos) => default;
 
-    public override void Preload(Float2 xRange, Float2 yRange) { }
+    public override void Preload(Float2 xRange, Float2 yRange, double step)
+    {
+        for (double x = Math.Ceiling(xRange.x - 1); x < xRange.y + 1; x += 1.0 / detail)
+        {
+            for (double y = Math.Ceiling(yRange.x - 1); y < yRange.y + 1; y += 1.0 / detail)
+            {
+                GetFromCache(step, x, y);
+            }
+        }
+    }
 }
 
 public delegate double SlopeFieldsDelegate(double x, double y);

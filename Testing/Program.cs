@@ -14,10 +14,10 @@ internal static class Program
 
         GraphForm graph = new("One Of The Graphing Calculators Of All Time");
 
-        Equation equ1 = new(x => -x * x + 2);
-        Equation equ2 = new(x => x);
-        Equation equ3 = new(x => -Math.Sqrt(x));
-        graph.Graph(equ1, equ2, equ3);
+        Equation possibleA = new(x => x * x * x);
+        SlopeField sf = new(2, (x, y) => 3 * x * x);
+        TangentLine tl = new(5, 2, possibleA);
+        graph.Graph(possibleA, sf, tl);
 
         // You can also now view and reset caches in the UI by going to
         // Misc > View Caches.

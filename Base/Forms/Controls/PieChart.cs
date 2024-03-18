@@ -46,16 +46,21 @@ public partial class PieChart : UserControl
             current += item.value;
         }
 
-        // Draw the outline.
-        Pen outlinePartsPen = new(Color.FromArgb(unchecked((int)0xFF_202020)), DpiFloat * 3 / 192);
-        current = 0;
-        foreach ((Color, double value) item in Values)
+        // Draw the outline of each slice.
+        // Only done if there is more than one slice.
+        if (Values.Count > 1)
         {
-            double start = 360 * current / sum,
-                   end = 360 * (current + item.value) / sum;
-            g.DrawPie(outlinePartsPen, rect, (float)start, (float)(end - start));
+            Pen outlinePartsPen = new(Color.FromArgb(unchecked((int)0xFF_202020)), DpiFloat * 3 / 192);
+            current = 0;
+            foreach ((Color, double value) item in Values)
+            {
+                double start = 360 * current / sum,
+                       end = 360 * (current + item.value) / sum;
+                if (item.value > 0)
+                    g.DrawPie(outlinePartsPen, rect, (float)start, (float)(end - start));
 
-            current += item.value;
+                current += item.value;
+            }
         }
 
         // Outline

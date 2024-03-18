@@ -466,12 +466,16 @@ public partial class GraphForm : Form
         Float2 min = MinVisibleGraph, max = MaxVisibleGraph;
         Float2 add = new(max.x - min.x, max.y - min.y);
         add.x *= 0.75; // Expansion
-        add.y *= 0.75; //
+        add.y *= 0.75; // Screen + 75%
 
         Float2 xRange = new(min.x - add.x, max.x + add.x),
                yRange = new(min.y - add.y, max.y + add.y);
 
-        foreach (Graphable able in Graphables) able.Preload(xRange, yRange);
+        double step = ScreenSpaceToGraphSpace(new Int2(1, 0)).x
+                    - ScreenSpaceToGraphSpace(new Int2(0, 0)).x;
+        step /= 10;
+
+        foreach (Graphable able in Graphables) able.Preload(xRange, yRange, step);
         Invalidate(false);
     }
 }
