@@ -1,4 +1,5 @@
-﻿using Graphing.Graphables;
+﻿using Graphing.Abstract;
+using Graphing.Graphables;
 using Graphing.Parts;
 using System;
 using System.Collections.Generic;
@@ -362,22 +363,24 @@ public partial class GraphForm : Form
             colorItem.Click += (o, e) => GraphColorPickerButton_Click(able);
             MenuColors.DropDownItems.Add(colorItem);
 
-            if (able is Equation equ)
+            if (able is IDerivable derivable)
             {
                 ToolStripMenuItem derivativeItem = new()
                 {
                     ForeColor = able.Color,
                     Text = able.Name
                 };
-                derivativeItem.Click += (o, e) => EquationComputeDerivative_Click(equ);
+                derivativeItem.Click += (o, e) => Graph(derivable.Derive());
                 MenuEquationsDerivative.DropDownItems.Add(derivativeItem);
-
+            }
+            if (able is IIntegrable integrable)
+            {
                 ToolStripMenuItem integralItem = new()
                 {
                     ForeColor = able.Color,
                     Text = able.Name
                 };
-                integralItem.Click += (o, e) => EquationComputeIntegral_Click(equ);
+                integralItem.Click += (o, e) => Graph(integrable.Integrate());
                 MenuEquationsIntegral.DropDownItems.Add(integralItem);
             }
         }
@@ -408,30 +411,6 @@ public partial class GraphForm : Form
         Location = initialWindowPos;
         Size = initialWindowSize;
         WindowState = FormWindowState.Normal;
-    }
-    private void EquationComputeDerivative_Click(Equation equation)
-    {
-        EquationDelegate equ = equation.GetDelegate();
-        string oldName = equation.Name, newName;
-        if (oldName.StartsWith("Derivative of ")) newName = "Second Derivative of " + oldName[14..];
-        else if (oldName.StartsWith("Second Derivative of ")) newName = "Third Derivative of " + oldName[21..];
-        else newName = "Derivative of " + oldName;
-        // TODO: anti-integrate (maybe).
-
-        Graph(new Equation(DerivativeAtPoint(equ))
-        {
-            Name = newName
-        });
-
-        static EquationDelegate DerivativeAtPoint(EquationDelegate e)
-        {
-            const double step = 1e-3;
-            return x => (e(x + step) - e(x)) / step;
-        }
-    }
-    private void EquationComputeIntegral_Click(Equation equation)
-    {
-        Graph(equation.Integrate());
     }
 
     private void MenuMiscCaches_Click(object? sender, EventArgs e)

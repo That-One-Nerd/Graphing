@@ -23,6 +23,9 @@ internal static class Program
         // Keep in mind this uses more memory than usual and can take
         // some time.
 
+        // Integrating equations is now much smoother and less intensive.
+        // Try it out!
+
         Application.Run(graph);
     }
 }

@@ -1,11 +1,12 @@
-﻿using Graphing.Forms;
+﻿using Graphing.Abstract;
+using Graphing.Forms;
 using Graphing.Parts;
 using System;
 using System.Collections.Generic;
 
 namespace Graphing.Graphables;
 
-public class Equation : Graphable
+public class Equation : Graphable, IIntegrable, IDerivable
 {
     private static int equationNum;
 
@@ -48,6 +49,11 @@ public class Equation : Graphable
         return lines;
     }
 
+    public Equation Derive() => new(x =>
+    {
+        const double step = 1e-3;
+        return (equ(x + step) - equ(x)) / step;
+    });
     public IntegralEquation Integrate() => new(this);
 
     public EquationDelegate GetDelegate() => equ;

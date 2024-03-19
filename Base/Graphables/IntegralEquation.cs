@@ -1,11 +1,12 @@
-﻿using Graphing.Forms;
+﻿using Graphing.Abstract;
+using Graphing.Forms;
 using Graphing.Parts;
 using System;
 using System.Collections.Generic;
 
 namespace Graphing.Graphables;
 
-public class IntegralEquation : Graphable
+public class IntegralEquation : Graphable, IIntegrable, IDerivable
 {
     protected readonly Equation baseEqu;
     protected readonly EquationDelegate baseEquDel;
@@ -113,11 +114,18 @@ public class IntegralEquation : Graphable
         return lines;
     }
 
-    public Equation AsEquation() => new(GetIntegralAtPoint);
+    public Equation AsEquation() => new(IntegralAtPoint)
+    {
+        Name = Name,
+        Color = Color
+    };
+
+    public Equation Derive() => (Equation)baseEqu.DeepCopy();
+    public IntegralEquation Integrate() => AsEquation().Integrate();
 
     // Standard integral method.
     // Inefficient for successive calls.
-    public double GetIntegralAtPoint(double x)
+    public double IntegralAtPoint(double x)
     {
         EquationDelegate equ = baseEqu.GetDelegate();
 
