@@ -1,5 +1,7 @@
 ﻿using Graphing.Forms;
 using Graphing.Parts;
+using System;
+using System.Collections.Generic;
 
 namespace Graphing.Graphables;
 

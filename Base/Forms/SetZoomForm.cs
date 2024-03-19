@@ -1,4 +1,7 @@
-﻿namespace Graphing.Forms;
+﻿using System;
+using System.Windows.Forms;
+
+namespace Graphing.Forms;
 
 public partial class SetZoomForm : Form
 {

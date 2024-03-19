@@ -1,5 +1,7 @@
 ﻿using Graphing.Forms;
 using Graphing.Parts;
+using System;
+using System.Collections.Generic;
 
 namespace Graphing.Graphables;
 
@@ -22,15 +24,17 @@ public class Equation : Graphable
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
     {
         const int step = 10;
+
         double epsilon = Math.Abs(graph.ScreenSpaceToGraphSpace(new Int2(0, 0)).x
                                 - graph.ScreenSpaceToGraphSpace(new Int2(step / 2, 0)).x) / 5;
+        epsilon *= graph.DpiFloat / 192;
 
         List<IGraphPart> lines = [];
 
         double previousX = graph.MinVisibleGraph.x;
         double previousY = GetFromCache(previousX, epsilon);
 
-        for (int i = 1; i < graph.ClientRectangle.Width; i += step)
+        for (int i = 0; i < graph.ClientRectangle.Width + step; i += step)
         {
             double currentX = graph.ScreenSpaceToGraphSpace(new Int2(i, 0)).x;
             double currentY = GetFromCache(currentX, epsilon);

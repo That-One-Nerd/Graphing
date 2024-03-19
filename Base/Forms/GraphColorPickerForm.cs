@@ -1,4 +1,8 @@
-﻿namespace Graphing.Forms;
+﻿using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace Graphing.Forms;
 
 public partial class GraphColorPickerForm : Form
 {

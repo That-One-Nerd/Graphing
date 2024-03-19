@@ -1,4 +1,6 @@
 ﻿using Graphing.Forms;
+using System.Collections.Generic;
+using System.Drawing;
 
 namespace Graphing;
 

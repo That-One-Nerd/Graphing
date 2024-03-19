@@ -1,4 +1,5 @@
 ﻿using Graphing.Forms;
+using System.Drawing;
 
 namespace Graphing;
 
