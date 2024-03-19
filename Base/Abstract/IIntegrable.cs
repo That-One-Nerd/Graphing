@@ -4,5 +4,5 @@ namespace Graphing.Abstract;
 
 public interface IIntegrable
 {
-    public IntegralEquation Integrate();
+    public Graphable Integrate();
 }

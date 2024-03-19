@@ -3,13 +3,18 @@ using Graphing.Forms;
 using Graphing.Parts;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 
 namespace Graphing.Graphables;
 
 public class IntegralEquation : Graphable, IIntegrable, IDerivable
 {
-    protected readonly Equation baseEqu;
-    protected readonly EquationDelegate baseEquDel;
+    protected readonly Equation? baseEqu;
+    protected readonly EquationDelegate? baseEquDel;
+
+    protected readonly IntegralEquation? altBaseEqu;
+
+    protected readonly bool usingAlt;
 
     public IntegralEquation(Equation baseEquation)
     {
@@ -22,9 +27,27 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
 
         baseEqu = baseEquation;
         baseEquDel = baseEquation.GetDelegate();
+
+        altBaseEqu = null;
+        usingAlt = false;
+    }
+    public IntegralEquation(IntegralEquation baseEquation)
+    {
+        string oldName = baseEquation.Name, newName;
+        if (oldName.StartsWith("Integral of ")) newName = "Second Integral of " + oldName[12..];
+        else if (oldName.StartsWith("Second Integral of ")) newName = "Third Integral of " + oldName[19..];
+        else newName = "Integral of " + oldName;
+
+        Name = newName;
+
+        baseEqu = null;
+        baseEquDel = null;
+
+        altBaseEqu = baseEquation;
+        usingAlt = true;
     }
 
-    public override Graphable DeepCopy() => new IntegralEquation(baseEqu);
+    public override Graphable DeepCopy() => new IntegralEquation(this);
 
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
     {
@@ -35,45 +58,42 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
         List<IGraphPart> lines = [];
 
         Int2 originLocation = graph.GraphSpaceToScreenSpace(new Float2(0, 0));
-
         if (originLocation.x < 0)
         {
             // Origin is off the left side of the screen.
             // Get to the left side from the origin.
-            double previousY = 0;
             double start = graph.MinVisibleGraph.x, end = graph.MaxVisibleGraph.x;
-            for (double x = 0; x <= start; x += epsilon) previousY += baseEquDel(x) * epsilon;
+            SetInternalStepper(start, epsilon, null);
 
             // Now we can start.
-            double previousX = start;
-
+            double previousX = stepX;
+            double previousY = stepY;
             for (double x = start; x <= end; x += epsilon)
             {
-                double currentX = x, currentY = previousY + baseEquDel(x) * epsilon;
-                lines.Add(new GraphLine(new Float2(previousX, previousY), new Float2(currentX, currentY)));
-
-                previousX = currentX;
-                previousY = currentY;
+                MoveInternalStepper(epsilon);
+                lines.Add(new GraphLine(new Float2(previousX, previousY),
+                                        new Float2(stepX, stepY)));
+                previousX = stepX;
+                previousY = stepY;
             }
         }
         else if (originLocation.x > graph.ClientRectangle.Width)
         {
             // Origin is off the right side of the screen.
             // Get to the right side of the origin.
-            double previousY = 0;
             double start = graph.MaxVisibleGraph.x, end = graph.MinVisibleGraph.x;
-            for (double x = 0; x >= start; x -= epsilon) previousY -= baseEquDel(x) * epsilon;
+            SetInternalStepper(start, epsilon, null);
 
             // Now we can start.
-            double previousX = start;
-
+            double previousX = stepX;
+            double previousY = stepY;
             for (double x = start; x >= end; x -= epsilon)
             {
-                double currentX = x, currentY = previousY - baseEquDel(x) * epsilon;
-                lines.Add(new GraphLine(new Float2(previousX, previousY), new Float2(currentX, currentY)));
-
-                previousX = currentX;
-                previousY = currentY;
+                MoveInternalStepper(-epsilon);
+                lines.Add(new GraphLine(new Float2(previousX, previousY),
+                                        new Float2(stepX, stepY)));
+                previousX = stepX;
+                previousY = stepY;
             }
         }
         else
@@ -83,45 +103,93 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
 
             // Start with right.
             double start = 0, end = graph.MaxVisibleGraph.x;
-            double previousX = start;
-            double previousY = 0;
+            SetInternalStepper(start, epsilon, null);
 
+            double previousX = stepX;
+            double previousY = stepY;
             for (double x = start; x <= end; x += epsilon)
             {
-                double currentX = x, currentY = previousY + baseEquDel(x) * epsilon;
-                lines.Add(new GraphLine(new Float2(previousX, previousY), new Float2(currentX, currentY)));
-
-                previousX = currentX;
-                previousY = currentY;
+                MoveInternalStepper(epsilon);
+                lines.Add(new GraphLine(new Float2(previousX, previousY),
+                                        new Float2(stepX, stepY)));
+                previousX = stepX;
+                previousY = stepY;
             }
 
             // Now do left.
             start = 0;
             end = graph.MinVisibleGraph.x;
-            previousX = start;
-            previousY = 0;
+            SetInternalStepper(start, epsilon, null);
+
+            previousX = stepX;
+            previousY = stepY;
 
             for (double x = start; x >= end; x -= epsilon)
             {
-                double currentX = x, currentY = previousY - baseEquDel(x) * epsilon;
-                lines.Add(new GraphLine(new Float2(previousX, previousY), new Float2(currentX, currentY)));
-
-                previousX = currentX;
-                previousY = currentY;
+                MoveInternalStepper(-epsilon);
+                lines.Add(new GraphLine(new Float2(previousX, previousY),
+                                        new Float2(stepX, stepY)));
+                previousX = stepX;
+                previousY = stepY;
             }
         }
 
         return lines;
     }
 
+    private double stepX = 0;
+    private double stepY = 0;
+    private void SetInternalStepper(double x, double dX, Action<double, double>? stepCallback)
+    {
+        stepX = 0;
+        stepY = 0;
+        if (usingAlt) altBaseEqu!.SetInternalStepper(0, dX, null);
+
+        if (x > 0)
+        {
+            while (stepX < x)
+            {
+                MoveInternalStepper(dX);
+                stepCallback?.Invoke(stepX, stepY);
+            }
+        }
+        else if (x < 0)
+        {
+            while (x < stepX)
+            {
+                MoveInternalStepper(-dX);
+                stepCallback?.Invoke(stepX, stepY);
+            }
+        }
+    }
+    private void MoveInternalStepper(double dX)
+    {
+        stepX += dX;
+        if (usingAlt)
+        {
+            altBaseEqu!.MoveInternalStepper(dX);
+            stepY += altBaseEqu!.stepY * dX;
+        }
+        else
+        {
+            stepY += baseEquDel!(stepX) * dX;
+        }
+    }
+
+    // Try to avoid using this, as it converts the integral into a
+    // far less efficient format (uses the `IntegralAtPoint` method).
     public Equation AsEquation() => new(IntegralAtPoint)
     {
         Name = Name,
         Color = Color
     };
 
-    public Equation Derive() => (Equation)baseEqu.DeepCopy();
-    public IntegralEquation Integrate() => AsEquation().Integrate();
+    public Graphable Derive()
+    {
+        if (usingAlt) return altBaseEqu!.DeepCopy();
+        else return (Equation)baseEqu!.DeepCopy();
+    }
+    public Graphable Integrate() => new IntegralEquation(this);
 
     // Standard integral method.
     // Inefficient for successive calls.
@@ -138,4 +206,21 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
 
         return sum;
     }
+
+    public override bool ShouldSelectGraphable(in GraphForm graph, Float2 graphMousePos, double factor)
+    {
+        Int2 screenMousePos = graph.GraphSpaceToScreenSpace(graphMousePos);
+
+        Int2 screenPos = graph.GraphSpaceToScreenSpace(new Float2(graphMousePos.x,
+                                                                  IntegralAtPoint(graphMousePos.x)));
+
+        double allowedDist = factor * graph.DpiFloat * 80 / 192;
+
+        Int2 dist = new(screenPos.x - screenMousePos.x,
+                        screenPos.y - screenMousePos.y);
+        double totalDist = Math.Sqrt(dist.x * dist.x + dist.y * dist.y);
+        return totalDist <= allowedDist;
+    }
+    public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos) =>
+        new(graphMousePos.x, IntegralAtPoint(graphMousePos.x));
 }

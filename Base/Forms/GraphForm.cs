@@ -1,5 +1,4 @@
 ﻿using Graphing.Abstract;
-using Graphing.Graphables;
 using Graphing.Parts;
 using System;
 using System.Collections.Generic;

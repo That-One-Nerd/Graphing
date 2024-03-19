@@ -49,12 +49,12 @@ public class Equation : Graphable, IIntegrable, IDerivable
         return lines;
     }
 
-    public Equation Derive() => new(x =>
+    public Graphable Derive() => new Equation(x =>
     {
         const double step = 1e-3;
         return (equ(x + step) - equ(x)) / step;
     });
-    public IntegralEquation Integrate() => new(this);
+    public Graphable Integrate() => new IntegralEquation(this);
 
     public EquationDelegate GetDelegate() => equ;
 
@@ -71,8 +71,6 @@ public class Equation : Graphable, IIntegrable, IDerivable
         }
     }
 
-    // Pretty sure this works. Certainly works pretty well with "hard-to-compute"
-    // equations.
     protected (double dist, double y, int index) NearestCachedPoint(double x)
     {
         if (cache.Count == 0) return (double.PositiveInfinity, double.NaN, -1);

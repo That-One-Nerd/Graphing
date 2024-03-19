@@ -17,7 +17,9 @@ internal static class Program
         GraphForm graph = new("One Of The Graphing Calculators Of All Time");
 
         Equation equ = new(Math.Sin);
-        graph.Graph(equ);
+        SlopeField sf = new(2, (x, y) => Math.Cos(x));
+        TangentLine tl = new(2, 2, equ);
+        graph.Graph(equ, sf, tl);
 
         // You can preload graphs in by going Misc > Preload Cache.
         // Keep in mind this uses more memory than usual and can take
@@ -25,6 +27,8 @@ internal static class Program
 
         // Integrating equations is now much smoother and less intensive.
         // Try it out!
+
+        // You can click and drag on an equation to select specific points.
 
         Application.Run(graph);
     }
