@@ -48,6 +48,8 @@ public class Equation : Graphable
         return lines;
     }
 
+    public IntegralEquation Integrate() => new(this);
+
     public EquationDelegate GetDelegate() => equ;
 
     public override void EraseCache() => cache.Clear();

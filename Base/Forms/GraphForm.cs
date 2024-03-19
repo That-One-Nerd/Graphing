@@ -431,38 +431,7 @@ public partial class GraphForm : Form
     }
     private void EquationComputeIntegral_Click(Equation equation)
     {
-        EquationDelegate equ = equation.GetDelegate();
-        string oldName = equation.Name, newName;
-        if (oldName.StartsWith("Integral of ")) newName = "Second Integral of " + oldName[12..];
-        else if (oldName.StartsWith("Second Integral of ")) newName = "Third Integral of " + oldName[19..];
-        else newName = "Integral of " + oldName;
-        // TODO: anti-derive (maybe)
-
-        Graph(new Equation(x => Integrate(equ, 0, x))
-        {
-            Name = newName
-        });
-
-        static double Integrate(EquationDelegate e, double lower, double upper)
-        {
-            // TODO: a better rendering method could make this much faster.
-            const double step = 1e-2;
-
-            double factor = 1;
-            if (upper < lower)
-            {
-                factor = -1;
-                (lower, upper) = (upper, lower);
-            }
-
-            double sum = 0;
-            for (double x = lower; x <= upper; x += step)
-            {
-                sum += e(x) * step;
-            }
-
-            return sum * factor;
-        }
+        Graph(equation.Integrate());
     }
 
     private void MenuMiscCaches_Click(object? sender, EventArgs e)
