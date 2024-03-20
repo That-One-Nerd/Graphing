@@ -63,7 +63,7 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
             // Origin is off the left side of the screen.
             // Get to the left side from the origin.
             double start = graph.MinVisibleGraph.x, end = graph.MaxVisibleGraph.x;
-            SetInternalStepper(start, epsilon, null);
+            SetInternalStepper(start, epsilon);
 
             // Now we can start.
             double previousX = stepX;
@@ -82,7 +82,7 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
             // Origin is off the right side of the screen.
             // Get to the right side of the origin.
             double start = graph.MaxVisibleGraph.x, end = graph.MinVisibleGraph.x;
-            SetInternalStepper(start, epsilon, null);
+            SetInternalStepper(start, epsilon);
 
             // Now we can start.
             double previousX = stepX;
@@ -103,7 +103,7 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
 
             // Start with right.
             double start = 0, end = graph.MaxVisibleGraph.x;
-            SetInternalStepper(start, epsilon, null);
+            SetInternalStepper(start, epsilon);
 
             double previousX = stepX;
             double previousY = stepY;
@@ -119,7 +119,7 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
             // Now do left.
             start = 0;
             end = graph.MinVisibleGraph.x;
-            SetInternalStepper(start, epsilon, null);
+            SetInternalStepper(start, epsilon);
 
             previousX = stepX;
             previousY = stepY;
@@ -139,27 +139,19 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
 
     private double stepX = 0;
     private double stepY = 0;
-    private void SetInternalStepper(double x, double dX, Action<double, double>? stepCallback)
+    private void SetInternalStepper(double x, double dX)
     {
         stepX = 0;
         stepY = 0;
-        if (usingAlt) altBaseEqu!.SetInternalStepper(0, dX, null);
+        if (usingAlt) altBaseEqu!.SetInternalStepper(0, dX);
 
         if (x > 0)
         {
-            while (stepX < x)
-            {
-                MoveInternalStepper(dX);
-                stepCallback?.Invoke(stepX, stepY);
-            }
+            while (stepX < x) MoveInternalStepper(dX);
         }
         else if (x < 0)
         {
-            while (x < stepX)
-            {
-                MoveInternalStepper(-dX);
-                stepCallback?.Invoke(stepX, stepY);
-            }
+            while (x < stepX) MoveInternalStepper(-dX);
         }
     }
     private void MoveInternalStepper(double dX)
@@ -195,16 +187,37 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
     // Inefficient for successive calls.
     public double IntegralAtPoint(double x)
     {
-        EquationDelegate equ = baseEqu.GetDelegate();
+        if (x > 0)
+        {
+            double start = Math.Min(0, x), end = Math.Max(0, x);
+            const double step = 1e-3;
+            double sum = 0;
 
-        double start = Math.Min(0, x), end = Math.Max(0, x);
-        const double step = 1e-3;
-        double sum = 0;
+            SetInternalStepper(start, step);
+            for (double t = start; t <= end; t += step)
+            {
+                MoveInternalStepper(step);
+                sum += stepY * step;
+            }
 
-        for (double t = start; t <= end; t += step) sum += equ(t) * step;
-        if (x < 0) sum = -sum;
+            return sum;
+        }
+        else if (x < 0)
+        {
+            double start = Math.Max(0, x), end = Math.Min(0, x);
+            const double step = 1e-3;
+            double sum = 0;
 
-        return sum;
+            SetInternalStepper(start, step);
+            for (double t = start; t >= end; t -= step)
+            {
+                MoveInternalStepper(-step);
+                sum -= stepY * step;
+            }
+
+            return sum;
+        }
+        else return 0;
     }
 
     public override bool ShouldSelectGraphable(in GraphForm graph, Float2 graphMousePos, double factor)
