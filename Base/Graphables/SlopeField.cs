@@ -1,5 +1,7 @@
 ﻿using Graphing.Forms;
 using Graphing.Parts;
+using System;
+using System.Collections.Generic;
 
 namespace Graphing.Graphables;
 
@@ -74,6 +76,57 @@ public class SlopeField : Graphable
 
     public override void EraseCache() => cache.Clear();
     public override long GetCacheBytes() => cache.Count * 48;
+    
+    public override bool ShouldSelectGraphable(in GraphForm graph, Float2 graphMousePos, double factor)
+    {
+        Float2 nearestPos = new(Math.Round(graphMousePos.x * detail) / detail,
+                                Math.Round(graphMousePos.y * detail) / detail);
+
+        double epsilon = 1 / (detail * 2.0);
+        GraphLine line = GetFromCache(epsilon, nearestPos.x, nearestPos.y);
+        double slope = (line.b.y - line.a.y) / (line.b.x - line.a.x);
+
+        if (graphMousePos.x < Math.Min(line.a.x, line.b.x) ||
+            graphMousePos.x > Math.Max(line.a.x, line.b.x)) return false;
+
+        double allowedDist = factor * graph.DpiFloat * 10 / 192;
+
+        double lineX = graphMousePos.x,
+               lineY = slope * (lineX - nearestPos.x) + nearestPos.y;
+
+        Int2 pointScreen = graph.GraphSpaceToScreenSpace(new Float2(lineX, lineY));
+        Int2 mouseScreen = graph.GraphSpaceToScreenSpace(graphMousePos);
+        Int2 dist = new(pointScreen.x - mouseScreen.x,
+                        pointScreen.y - mouseScreen.y);
+        double totalDist = Math.Sqrt(dist.x * dist.x + dist.y * dist.y);
+        return totalDist <= allowedDist;
+    }
+    public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos)
+    {
+        Float2 nearestPos = new(Math.Round(graphMousePos.x * detail) / detail,
+                                Math.Round(graphMousePos.y * detail) / detail);
+
+        double epsilon = 1 / (detail * 2.0);
+        GraphLine line = GetFromCache(epsilon, nearestPos.x, nearestPos.y);
+        double slope = (line.b.y - line.a.y) / (line.b.x - line.a.x);
+
+        double lineX = graphMousePos.x,
+               lineY = slope * (lineX - nearestPos.x) + nearestPos.y;
+        Float2 point = new(lineX, lineY);
+
+        return point;
+    }
+
+    public override void Preload(Float2 xRange, Float2 yRange, double step)
+    {
+        for (double x = Math.Ceiling(xRange.x - 1); x < xRange.y + 1; x += 1.0 / detail)
+        {
+            for (double y = Math.Ceiling(yRange.x - 1); y < yRange.y + 1; y += 1.0 / detail)
+            {
+                GetFromCache(step, x, y);
+            }
+        }
+    }
 }
 
 public delegate double SlopeFieldsDelegate(double x, double y);

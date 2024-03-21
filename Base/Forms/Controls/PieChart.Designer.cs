@@ -1,4 +1,6 @@
-﻿namespace Graphing.Forms.Controls
+﻿using System.Drawing;
+
+namespace Graphing.Forms.Controls
 {
     partial class PieChart
     {
@@ -33,7 +35,7 @@
             // PieChart
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
-            AutoScaleMode = AutoScaleMode.Font;
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             Name = "PieChart";
             Size = new Size(500, 500);
             ResumeLayout(false);

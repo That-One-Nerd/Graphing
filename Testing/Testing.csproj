@@ -4,7 +4,7 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
     <RootNamespace>Graphing.Testing</RootNamespace>
     <AssemblyName>ThatOneNerd.Graphing.Testing</AssemblyName>
   </PropertyGroup>

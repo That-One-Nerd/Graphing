@@ -1,4 +1,6 @@
-﻿namespace Graphing;
+﻿using System.Drawing;
+
+namespace Graphing;
 
 public record struct Int2
 {

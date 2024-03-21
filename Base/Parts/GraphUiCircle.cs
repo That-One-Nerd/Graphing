@@ -1,4 +1,5 @@
 ﻿using Graphing.Forms;
+using System.Drawing;
 
 namespace Graphing.Parts;
 
@@ -18,14 +19,16 @@ public record struct GraphUiCircle : IGraphPart
         this.radius = radius;
     }
 
-    public readonly void Render(in GraphForm form, in Graphics g, in Brush brush)
+    public readonly void Render(in GraphForm form, in Graphics g, in Pen pen)
     {
         if (!double.IsFinite(center.x) || !double.IsFinite(center.y) ||
             !double.IsFinite(radius) || radius == 0) return;
 
+        int rad = (int)(form.DpiFloat * radius / 192);
+
         Int2 centerPix = form.GraphSpaceToScreenSpace(center);
-        g.FillEllipse(brush, new Rectangle(new Point(centerPix.x - radius,
-                                                     centerPix.y - radius),
-                                            new Size(radius * 2, radius * 2)));
+        g.FillEllipse(pen.Brush, new Rectangle(new Point(centerPix.x - rad,
+                                                         centerPix.y - rad),
+                                               new Size(rad * 2, rad * 2)));
     }
 }

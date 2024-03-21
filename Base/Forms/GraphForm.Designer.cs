@@ -1,4 +1,7 @@
-﻿namespace Graphing.Forms
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace Graphing.Forms
 {
     partial class GraphForm
     {
@@ -41,6 +44,7 @@
             MenuEquationsIntegral = new ToolStripMenuItem();
             MenuMisc = new ToolStripMenuItem();
             MenuMiscCaches = new ToolStripMenuItem();
+            MiscMenuPreload = new ToolStripMenuItem();
             GraphMenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -129,7 +133,7 @@
             // 
             // MenuMisc
             // 
-            MenuMisc.DropDownItems.AddRange(new ToolStripItem[] { MenuMiscCaches });
+            MenuMisc.DropDownItems.AddRange(new ToolStripItem[] { MenuMiscCaches, MiscMenuPreload });
             MenuMisc.Name = "MenuMisc";
             MenuMisc.Size = new Size(83, 38);
             MenuMisc.Text = "Misc";
@@ -140,6 +144,13 @@
             MenuMiscCaches.Size = new Size(359, 44);
             MenuMiscCaches.Text = "View Caches";
             MenuMiscCaches.Click += MenuMiscCaches_Click;
+            // 
+            // MiscMenuPreload
+            // 
+            MiscMenuPreload.Name = "MiscMenuPreload";
+            MiscMenuPreload.Size = new Size(359, 44);
+            MiscMenuPreload.Text = "Preload Cache";
+            MiscMenuPreload.Click += MiscMenuPreload_Click;
             // 
             // GraphForm
             // 
@@ -172,5 +183,6 @@
         private ToolStripMenuItem MenuEquationsIntegral;
         private ToolStripMenuItem MenuMisc;
         private ToolStripMenuItem MenuMiscCaches;
+        private ToolStripMenuItem MiscMenuPreload;
     }
 }

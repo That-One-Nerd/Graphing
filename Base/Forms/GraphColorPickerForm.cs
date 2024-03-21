@@ -1,4 +1,8 @@
-﻿namespace Graphing.Forms;
+﻿using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace Graphing.Forms;
 
 public partial class GraphColorPickerForm : Form
 {
@@ -37,7 +41,7 @@ public partial class GraphColorPickerForm : Form
         MessageLabel.Text = $"Pick a color for {able.Name}.";
 
         // Add preset buttons.
-        const int size = 48;
+        int size = (int)(graph.DpiFloat * 48 / 192);
         int position = 0;
         foreach (uint cId in Graphable.DefaultColors)
         {

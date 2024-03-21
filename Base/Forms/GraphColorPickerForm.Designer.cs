@@ -1,4 +1,7 @@
-﻿namespace Graphing.Forms
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace Graphing.Forms
 {
     partial class GraphColorPickerForm
     {
@@ -40,7 +43,7 @@
             ResultView = new Panel();
             BottomPanel = new Panel();
             OkButton = new Button();
-            CancelButton = new Button();
+            CancellingButton = new Button();
             RgbSliders.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)BlueTrackBar).BeginInit();
             ((System.ComponentModel.ISupportInitialize)RedTrackBar).BeginInit();
@@ -169,7 +172,7 @@
             // 
             BottomPanel.BackColor = SystemColors.Window;
             BottomPanel.Controls.Add(OkButton);
-            BottomPanel.Controls.Add(CancelButton);
+            BottomPanel.Controls.Add(CancellingButton);
             BottomPanel.Dock = DockStyle.Bottom;
             BottomPanel.Location = new Point(0, 517);
             BottomPanel.Margin = new Padding(0);
@@ -191,15 +194,15 @@
             // 
             // CancelButton
             // 
-            CancelButton.Anchor = AnchorStyles.Right;
-            CancelButton.Location = new Point(384, 9);
-            CancelButton.Margin = new Padding(0);
-            CancelButton.Name = "CancelButton";
-            CancelButton.Size = new Size(150, 46);
-            CancelButton.TabIndex = 0;
-            CancelButton.Text = "Cancel";
-            CancelButton.UseVisualStyleBackColor = true;
-            CancelButton.Click += CancelButton_Click;
+            CancellingButton.Anchor = AnchorStyles.Right;
+            CancellingButton.Location = new Point(384, 9);
+            CancellingButton.Margin = new Padding(0);
+            CancellingButton.Name = "CancelButton";
+            CancellingButton.Size = new Size(150, 46);
+            CancellingButton.TabIndex = 0;
+            CancellingButton.Text = "Cancel";
+            CancellingButton.UseVisualStyleBackColor = true;
+            CancellingButton.Click += CancelButton_Click;
             // 
             // GraphColorPickerForm
             // 
@@ -234,7 +237,7 @@
         private TrackBar BlueTrackBar;
         private TrackBar RedTrackBar;
         private Panel BottomPanel;
-        private Button CancelButton;
+        private Button CancellingButton;
         private Button OkButton;
         private TextBox RedValueBox;
         private TextBox BlueValueBox;

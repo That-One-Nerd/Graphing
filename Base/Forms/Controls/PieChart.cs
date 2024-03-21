@@ -1,4 +1,8 @@
-﻿using System.Drawing.Drawing2D;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Windows.Forms;
 
 namespace Graphing.Forms.Controls;
 
@@ -6,11 +10,17 @@ public partial class PieChart : UserControl
 {
     public List<(Color, double)> Values { get; set; }
 
+    public float DpiFloat { get; private set; }
+
     public PieChart()
     {
         SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
         SetStyle(ControlStyles.AllPaintingInWmPaint, true);
         SetStyle(ControlStyles.UserPaint, true);
+
+        Graphics tempG = CreateGraphics();
+        DpiFloat = (tempG.DpiX + tempG.DpiY) / 2;
+        tempG.Dispose();
 
         Values = [];
         InitializeComponent();
@@ -40,20 +50,25 @@ public partial class PieChart : UserControl
             current += item.value;
         }
 
-        // Draw the outline.
-        Pen outlinePartsPen = new(Color.FromArgb(unchecked((int)0xFF_202020)), 3);
-        current = 0;
-        foreach ((Color, double value) item in Values)
+        // Draw the outline of each slice.
+        // Only done if there is more than one slice.
+        if (Values.Count > 1)
         {
-            double start = 360 * current / sum,
-                   end = 360 * (current + item.value) / sum;
-            g.DrawPie(outlinePartsPen, rect, (float)start, (float)(end - start));
+            Pen outlinePartsPen = new(Color.FromArgb(unchecked((int)0xFF_202020)), DpiFloat * 3 / 192);
+            current = 0;
+            foreach ((Color, double value) item in Values)
+            {
+                double start = 360 * current / sum,
+                       end = 360 * (current + item.value) / sum;
+                if (item.value > 0)
+                    g.DrawPie(outlinePartsPen, rect, (float)start, (float)(end - start));
 
-            current += item.value;
+                current += item.value;
+            }
         }
 
         // Outline
-        Pen outlinePen = new(Color.FromArgb(unchecked((int)0xFF_202020)), 5);
+        Pen outlinePen = new(Color.FromArgb(unchecked((int)0xFF_202020)), DpiFloat * 5 / 192);
         g.DrawEllipse(outlinePen, rect);
     }
 }

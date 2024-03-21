@@ -1,5 +1,8 @@
 ﻿using Graphing.Forms;
 using Graphing.Parts;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Graphing.Graphables;
 
@@ -32,7 +35,6 @@ public class ColumnTable : Graphable
             tableXY.Add(x, equ(x));
     }
 
-    public override void EraseCache() { }
     public override long GetCacheBytes() => 16 * tableXY.Count;
 
     public override Graphable DeepCopy() => new ColumnTable(width / 0.75, tableXY.ToArray().ToDictionary());
@@ -48,4 +50,7 @@ public class ColumnTable : Graphable
 
         return items;
     }
+
+    // Nothing to preload, everything is already cached.
+    public override void Preload(Float2 xRange, Float2 yRange, double step) { }
 }

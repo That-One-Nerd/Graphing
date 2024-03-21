@@ -1,7 +1,11 @@
-﻿using Graphing.Extensions;
-using Graphing.Graphables;
+﻿using Graphing.Abstract;
+using Graphing.Parts;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Text;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace Graphing.Forms;
 
@@ -10,9 +14,12 @@ public partial class GraphForm : Form
     public static readonly Color MainAxisColor = Color.Black;
     public static readonly Color SemiAxisColor = Color.FromArgb(unchecked((int)0xFF_999999));
     public static readonly Color QuarterAxisColor = Color.FromArgb(unchecked((int)0xFF_E0E0E0));
+    public static readonly Color UnitsTextColor = Color.Black;
 
     public Float2 ScreenCenter { get; private set; }
     public Float2 Dpi { get; private set; }
+
+    public float DpiFloat { get; private set; }
 
     public double ZoomLevel
     {
@@ -21,7 +28,7 @@ public partial class GraphForm : Form
         {
             double oldZoom = ZoomLevel;
 
-            _zoomLevel = Math.Clamp(value, 1e-2, 1e3);
+            _zoomLevel = Math.Clamp(value, 1e-5, 1e3);
 
             int totalSegments = 0;
             foreach (Graphable able in ables) totalSegments += able.GetItemsToRender(this).Count();
@@ -57,6 +64,9 @@ public partial class GraphForm : Form
         Graphics tempG = CreateGraphics();
         Dpi = new(tempG.DpiX, tempG.DpiY);
         tempG.Dispose();
+
+        DpiFloat = (float)((Dpi.x + Dpi.y) / 2);
+
         ables = [];
         ZoomLevel = 1;
         initialWindowPos = Location;
@@ -102,7 +112,7 @@ public partial class GraphForm : Form
 
         // Draw horizontal/vertical quarter-axis.
         Brush quarterBrush = new SolidBrush(QuarterAxisColor);
-        Pen quarterPen = new(quarterBrush, 2);
+        Pen quarterPen = new(quarterBrush, DpiFloat * 2 / 192);
 
         for (double x = Math.Ceiling(MinVisibleGraph.x * 4 / axisScale) * axisScale / 4; x <= Math.Floor(MaxVisibleGraph.x * 4 / axisScale) * axisScale / 4; x += axisScale / 4)
         {
@@ -119,7 +129,7 @@ public partial class GraphForm : Form
 
         // Draw horizontal/vertical semi-axis.
         Brush semiBrush = new SolidBrush(SemiAxisColor);
-        Pen semiPen = new(semiBrush, 2);
+        Pen semiPen = new(semiBrush, DpiFloat * 2 / 192);
 
         for (double x = Math.Ceiling(MinVisibleGraph.x / axisScale) * axisScale; x <= Math.Floor(MaxVisibleGraph.x / axisScale) * axisScale; x += axisScale)
         {
@@ -135,7 +145,7 @@ public partial class GraphForm : Form
         }
 
         Brush mainLineBrush = new SolidBrush(MainAxisColor);
-        Pen mainLinePen = new(mainLineBrush, 3);
+        Pen mainLinePen = new(mainLineBrush, DpiFloat * 3 / 192);
 
         // Draw the main axis (on top of the semi axis).
         Int2 startCenterY = GraphSpaceToScreenSpace(new Float2(0, MinVisibleGraph.y)),
@@ -145,6 +155,44 @@ public partial class GraphForm : Form
 
         g.DrawLine(mainLinePen, startCenterX, endCenterX);
         g.DrawLine(mainLinePen, startCenterY, endCenterY);
+    }
+    protected virtual void PaintUnits(Graphics g)
+    {
+        double axisScale = Math.Pow(2, Math.Round(Math.Log(ZoomLevel, 2)));
+        Brush textBrush = new SolidBrush(UnitsTextColor);
+        Font textFont = new(Font.Name, 9, FontStyle.Regular);
+
+        // X-axis
+        int minX = (int)(DpiFloat * 50 / 192),
+            maxX = ClientRectangle.Height - (int)(DpiFloat * 40 / 192);
+        for (double x = Math.Ceiling(MinVisibleGraph.x / axisScale) * axisScale; x <= MaxVisibleGraph.x; x += axisScale)
+        {
+            if (x == 0) x = 0; // Fixes -0
+
+            Int2 screenPos = GraphSpaceToScreenSpace(new Float2(x, 0));
+
+            if (screenPos.y < minX) screenPos.y = minX;
+            else if (screenPos.y > maxX) screenPos.y = maxX;
+
+            g.DrawString($"{x}", textFont, textBrush, screenPos.x, screenPos.y);
+        }
+
+        // Y-axis
+        int minY = (int)(DpiFloat * 10 / 192);
+        for (double y = Math.Ceiling(MinVisibleGraph.y / axisScale) * axisScale; y <= MaxVisibleGraph.y; y += axisScale)
+        {
+            if (y == 0) continue;
+
+            Int2 screenPos = GraphSpaceToScreenSpace(new Float2(0, y));
+
+            string result = y.ToString();
+            int maxY = ClientRectangle.Width - (int)(DpiFloat * (textFont.Height * result.Length * 0.40 + 15) / 192);
+
+            if (screenPos.x < minY) screenPos.x = minY;
+            else if (screenPos.x > maxY) screenPos.x = maxY;
+
+            g.DrawString($"{y}", textFont, textBrush, screenPos.x, screenPos.y);
+        }
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -156,13 +204,47 @@ public partial class GraphForm : Form
         g.FillRectangle(background, e.ClipRectangle);
 
         PaintGrid(g);
+        PaintUnits(g);
+
+        Point clientMousePos = PointToClient(Cursor.Position);
+        Float2 graphMousePos = ScreenSpaceToGraphSpace(new(clientMousePos.X,
+                                                           clientMousePos.Y));
 
         // Draw the actual graphs.
+        Pen[] graphPens = new Pen[ables.Count];
         for (int i = 0; i < ables.Count; i++)
         {
             IEnumerable<IGraphPart> lines = ables[i].GetItemsToRender(this);
             Brush graphBrush = new SolidBrush(ables[i].Color);
-            foreach (IGraphPart gp in lines) gp.Render(this, g, graphBrush);
+            Pen graphPen = new(graphBrush, DpiFloat * 3 / 192);
+            graphPens[i] = graphPen;
+            foreach (IGraphPart gp in lines) gp.Render(this, g, graphPen);
+        }
+
+        // Equation selection detection.
+        // This system lets you select multiple graphs, and that's cool by me.
+        if (ableDrag)
+        {
+            Font textFont = new(Font.Name, 8, FontStyle.Bold);
+            for (int i = 0; i < ables.Count; i++)
+            {
+                if (ables[i].ShouldSelectGraphable(this, graphMousePos, 2.5))
+                {
+                    Float2 selectedPoint = ables[i].GetSelectedPoint(this, graphMousePos);
+                    GraphUiCircle select = new(selectedPoint, 8);
+
+                    Int2 textPos = GraphSpaceToScreenSpace(select.center);
+                    textPos.y -= (int)(DpiFloat * 32 / 192);
+
+                    string content = $"({selectedPoint.x:0.00}, {selectedPoint.y:0.00})";
+
+                    SizeF textSize = g.MeasureString(content, textFont);
+                    g.FillRectangle(background, new Rectangle(textPos.x, textPos.y,
+                                         (int)textSize.Width, (int)textSize.Height));
+                    g.DrawString(content, textFont, graphPens[i].Brush, new Point(textPos.x, textPos.y));
+                    select.Render(this, g, graphPens[i]);
+                }
+            }
         }
 
         base.OnPaint(e);
@@ -183,11 +265,28 @@ public partial class GraphForm : Form
     private bool mouseDrag = false;
     private Int2 initialMouseLocation;
     private Float2 initialScreenCenter;
+
+    private bool ableDrag = false;
     protected override void OnMouseDown(MouseEventArgs e)
     {
-        mouseDrag = true;
-        initialMouseLocation = new Int2(Cursor.Position.X, Cursor.Position.Y);
-        initialScreenCenter = ScreenCenter;
+        if (!mouseDrag)
+        {
+            Point clientMousePos = PointToClient(Cursor.Position);
+            Float2 graphMousePos = ScreenSpaceToGraphSpace(new(clientMousePos.X,
+                                                               clientMousePos.Y));
+            foreach (Graphable able in Graphables)
+            {
+                if (able.ShouldSelectGraphable(this, graphMousePos, 1)) ableDrag = true;
+            }
+            if (ableDrag) Invalidate(false);
+        }
+
+        if (!ableDrag)
+        {
+            mouseDrag = true;
+            initialMouseLocation = new Int2(Cursor.Position.X, Cursor.Position.Y);
+            initialScreenCenter = ScreenCenter;
+        }
     }
     protected override void OnMouseUp(MouseEventArgs e)
     {
@@ -198,9 +297,10 @@ public partial class GraphForm : Form
             Float2 graphDiff = new(pixelDiff.x * ZoomLevel / Dpi.x, pixelDiff.y * ZoomLevel / Dpi.y);
             ScreenCenter = new(initialScreenCenter.x + graphDiff.x,
                                initialScreenCenter.y + graphDiff.y);
-            Invalidate(false);
         }
         mouseDrag = false;
+        ableDrag = false;
+        Invalidate(false);
     }
     protected override void OnMouseMove(MouseEventArgs e)
     {
@@ -213,6 +313,7 @@ public partial class GraphForm : Form
                                initialScreenCenter.y + graphDiff.y);
             Invalidate(false);
         }
+        else if (ableDrag) Invalidate(false);
     }
     protected override void OnMouseWheel(MouseEventArgs e)
     {
@@ -226,7 +327,6 @@ public partial class GraphForm : Form
         ZoomLevel = 1;
         Invalidate(false);
     }
-
     private void GraphColorPickerButton_Click(Graphable able)
     {
         GraphColorPickerForm picker = new(this, able)
@@ -235,6 +335,13 @@ public partial class GraphForm : Form
         };
         picker.Location = new Point(Location.X + ClientRectangle.Width + 10,
                                     Location.Y + (ClientRectangle.Height - picker.ClientRectangle.Height) / 2);
+
+        if (picker.Location.X + picker.Width > Screen.FromControl(this).WorkingArea.Width)
+        {
+            picker.StartPosition = FormStartPosition.WindowsDefaultLocation;
+        }
+
+        picker.TopMost = true;
         picker.ShowDialog();
         RegenerateMenuItems();
     }
@@ -255,22 +362,24 @@ public partial class GraphForm : Form
             colorItem.Click += (o, e) => GraphColorPickerButton_Click(able);
             MenuColors.DropDownItems.Add(colorItem);
 
-            if (able is Equation equ)
+            if (able is IDerivable derivable)
             {
                 ToolStripMenuItem derivativeItem = new()
                 {
                     ForeColor = able.Color,
                     Text = able.Name
                 };
-                derivativeItem.Click += (o, e) => EquationComputeDerivative_Click(equ);
+                derivativeItem.Click += (o, e) => Graph(derivable.Derive());
                 MenuEquationsDerivative.DropDownItems.Add(derivativeItem);
-
+            }
+            if (able is IIntegrable integrable)
+            {
                 ToolStripMenuItem integralItem = new()
                 {
                     ForeColor = able.Color,
                     Text = able.Name
                 };
-                integralItem.Click += (o, e) => EquationComputeIntegral_Click(equ);
+                integralItem.Click += (o, e) => Graph(integrable.Integrate());
                 MenuEquationsIntegral.DropDownItems.Add(integralItem);
             }
         }
@@ -286,81 +395,21 @@ public partial class GraphForm : Form
                                     Location.Y + (ClientRectangle.Height - picker.ClientRectangle.Height) / 2);
         picker.ShowDialog();
     }
-
     private void ButtonViewportSetCenter_Click(object? sender, EventArgs e)
     {
         MessageBox.Show("TODO", "Set Center Position", MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
-
     private void ButtonViewportReset_Click(object? sender, EventArgs e)
     {
         ScreenCenter = new Float2(0, 0);
         ZoomLevel = 1;
         Invalidate(false);
     }
-
     private void ButtonViewportResetWindow_Click(object? sender, EventArgs e)
     {
         Location = initialWindowPos;
         Size = initialWindowSize;
         WindowState = FormWindowState.Normal;
-    }
-
-    private void EquationComputeDerivative_Click(Equation equation)
-    {
-        EquationDelegate equ = equation.GetDelegate();
-        string oldName = equation.Name, newName;
-        if (oldName.StartsWith("Derivative of ")) newName = "Second Derivative of " + oldName[14..];
-        else if (oldName.StartsWith("Second Derivative of ")) newName = "Third Derivative of " + oldName[21..];
-        else newName = "Derivative of " + oldName;
-        // TODO: anti-integrate (maybe).
-
-        Graph(new Equation(DerivativeAtPoint(equ))
-        {
-            Name = newName
-        });
-
-        static EquationDelegate DerivativeAtPoint(EquationDelegate e)
-        {
-            const double step = 1e-3;
-            return x => (e(x + step) - e(x)) / step;
-        }
-    }
-
-    private void EquationComputeIntegral_Click(Equation equation)
-    {
-        EquationDelegate equ = equation.GetDelegate();
-        string oldName = equation.Name, newName;
-        if (oldName.StartsWith("Integral of ")) newName = "Second Integral of " + oldName[12..];
-        else if (oldName.StartsWith("Second Integral of ")) newName = "Third Integral of " + oldName[19..];
-        else newName = "Integral of " + oldName;
-        // TODO: anti-derive (maybe)
-
-        Graph(new Equation(x => Integrate(equ, 0, x))
-        {
-            Name = newName
-        });
-
-        static double Integrate(EquationDelegate e, double lower, double upper)
-        {
-            // TODO: a better rendering method could make this much faster.
-            const double step = 1e-2;
-
-            double factor = 1;
-            if (upper < lower)
-            {
-                factor = -1;
-                (lower, upper) = (upper, lower);
-            }
-
-            double sum = 0;
-            for (double x = lower; x <= upper; x += step)
-            {
-                sum += e(x) * step;
-            }
-
-            return sum * factor;
-        }
     }
 
     private void MenuMiscCaches_Click(object? sender, EventArgs e)
@@ -372,6 +421,29 @@ public partial class GraphForm : Form
 
         cacheForm.Location = new Point(Location.X + ClientRectangle.Width + 10,
                                        Location.Y + (ClientRectangle.Height - cacheForm.ClientRectangle.Height) / 2);
+
+        if (cacheForm.Location.X + cacheForm.Width > Screen.FromControl(this).WorkingArea.Width)
+        {
+            cacheForm.StartPosition = FormStartPosition.WindowsDefaultLocation;
+        }
+        cacheForm.TopMost = true;
         cacheForm.Show();
+    }
+    private void MiscMenuPreload_Click(object sender, EventArgs e)
+    {
+        Float2 min = MinVisibleGraph, max = MaxVisibleGraph;
+        Float2 add = new(max.x - min.x, max.y - min.y);
+        add.x *= 0.75; // Expansion
+        add.y *= 0.75; // Screen + 75%
+
+        Float2 xRange = new(min.x - add.x, max.x + add.x),
+               yRange = new(min.y - add.y, max.y + add.y);
+
+        double step = ScreenSpaceToGraphSpace(new Int2(1, 0)).x
+                    - ScreenSpaceToGraphSpace(new Int2(0, 0)).x;
+        step /= 10;
+
+        foreach (Graphable able in Graphables) able.Preload(xRange, yRange, step);
+        Invalidate(false);
     }
 }
