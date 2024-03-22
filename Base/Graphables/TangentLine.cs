@@ -1,11 +1,12 @@
-﻿using Graphing.Forms;
+﻿using Graphing.Abstract;
+using Graphing.Forms;
 using Graphing.Parts;
 using System;
 using System.Collections.Generic;
 
 namespace Graphing.Graphables;
 
-public class TangentLine : Graphable
+public class TangentLine : Graphable, IEquationConvertible, ITranslatableX
 {
     public double Position
     {
@@ -18,8 +19,13 @@ public class TangentLine : Graphable
     }
     private double _position; // Private because it has exactly the same functionality as `Position`.
 
+    public double OffsetX
+    {
+        get => Position;
+        set => Position = value;
+    }
+
     protected readonly Equation parent;
-    protected readonly EquationDelegate parentEqu;
 
     protected readonly double length;
 
@@ -35,10 +41,16 @@ public class TangentLine : Graphable
         Name = $"Tangent Line of {parent.Name}";
 
         slopeCache = [];
-        parentEqu = parent.GetDelegate();
-        Position = position;
         this.length = length;
         this.parent = parent;
+        Position = position;
+
+        parent.OnInvalidate += (graph) =>
+        {
+            // I don't love this but it works.
+            EraseCache();
+            Position = _position; // Done for side effects.
+        };
     }
 
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
@@ -63,8 +75,8 @@ public class TangentLine : Graphable
 
         const double step = 1e-3;
 
-        double initial = parentEqu(x);
-        Float2 result = new((parentEqu(x + step) - initial) / step, initial);
+        double initial = parent.GetValueAt(x);
+        Float2 result = new((parent.GetValueAt(x + step) - initial) / step, initial);
         slopeCache.Add(x, result);
         return result;
     }
@@ -111,5 +123,15 @@ public class TangentLine : Graphable
         // but may be used when the tangent line is moved. Not sure there's much
         // that can be changed.
         for (double x = xRange.x; x <= xRange.y; x += step) DerivativeAtPoint(x);
+    }
+
+    public Equation ToEquation()
+    {
+        double slope = currentSlope.x, x1 = Position, y1 = currentSlope.y;
+        return new(x => slope * (x - x1) + y1)
+        {
+            Name = Name,
+            Color = Color
+        };
     }
 }

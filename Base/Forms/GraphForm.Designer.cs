@@ -38,13 +38,18 @@ namespace Graphing.Forms
             ButtonViewportSetCenter = new ToolStripMenuItem();
             ButtonViewportReset = new ToolStripMenuItem();
             ButtonViewportResetWindow = new ToolStripMenuItem();
-            MenuColors = new ToolStripMenuItem();
-            MenuEquations = new ToolStripMenuItem();
-            MenuEquationsDerivative = new ToolStripMenuItem();
-            MenuEquationsIntegral = new ToolStripMenuItem();
+            MenuElements = new ToolStripMenuItem();
+            MenuElementsColors = new ToolStripMenuItem();
+            MenuElementsRemove = new ToolStripMenuItem();
+            MenuOperations = new ToolStripMenuItem();
+            MenuOperationsDerivative = new ToolStripMenuItem();
+            MenuOperationsIntegral = new ToolStripMenuItem();
+            MenuConvert = new ToolStripMenuItem();
+            MenuConvertEquation = new ToolStripMenuItem();
             MenuMisc = new ToolStripMenuItem();
             MenuMiscCaches = new ToolStripMenuItem();
             MiscMenuPreload = new ToolStripMenuItem();
+            MenuOperationsTranslate = new ToolStripMenuItem();
             GraphMenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -64,7 +69,7 @@ namespace Graphing.Forms
             // GraphMenu
             // 
             GraphMenu.ImageScalingSize = new Size(32, 32);
-            GraphMenu.Items.AddRange(new ToolStripItem[] { MenuViewport, MenuColors, MenuEquations, MenuMisc });
+            GraphMenu.Items.AddRange(new ToolStripItem[] { MenuViewport, MenuElements, MenuOperations, MenuConvert, MenuMisc });
             GraphMenu.Location = new Point(0, 0);
             GraphMenu.Name = "GraphMenu";
             GraphMenu.Size = new Size(1449, 42);
@@ -106,30 +111,56 @@ namespace Graphing.Forms
             ButtonViewportResetWindow.Text = "Reset Window Size";
             ButtonViewportResetWindow.Click += ButtonViewportResetWindow_Click;
             // 
-            // MenuColors
+            // MenuElements
             // 
-            MenuColors.Name = "MenuColors";
-            MenuColors.Size = new Size(101, 38);
-            MenuColors.Text = "Colors";
+            MenuElements.DropDownItems.AddRange(new ToolStripItem[] { MenuElementsColors, MenuElementsRemove });
+            MenuElements.Name = "MenuElements";
+            MenuElements.Size = new Size(131, 38);
+            MenuElements.Text = "Elements";
             // 
-            // MenuEquations
+            // MenuElementsColors
             // 
-            MenuEquations.DropDownItems.AddRange(new ToolStripItem[] { MenuEquationsDerivative, MenuEquationsIntegral });
-            MenuEquations.Name = "MenuEquations";
-            MenuEquations.Size = new Size(138, 38);
-            MenuEquations.Text = "Equations";
+            MenuElementsColors.Name = "MenuElementsColors";
+            MenuElementsColors.Size = new Size(359, 44);
+            MenuElementsColors.Text = "Colors";
             // 
-            // MenuEquationsDerivative
+            // MenuElementsRemove
             // 
-            MenuEquationsDerivative.Name = "MenuEquationsDerivative";
-            MenuEquationsDerivative.Size = new Size(360, 44);
-            MenuEquationsDerivative.Text = "Compute Derivative";
+            MenuElementsRemove.Name = "MenuElementsRemove";
+            MenuElementsRemove.Size = new Size(359, 44);
+            MenuElementsRemove.Text = "Remove";
             // 
-            // MenuEquationsIntegral
+            // MenuOperations
             // 
-            MenuEquationsIntegral.Name = "MenuEquationsIntegral";
-            MenuEquationsIntegral.Size = new Size(360, 44);
-            MenuEquationsIntegral.Text = "Compute Integral";
+            MenuOperations.DropDownItems.AddRange(new ToolStripItem[] { MenuOperationsDerivative, MenuOperationsIntegral, MenuOperationsTranslate });
+            MenuOperations.Name = "MenuOperations";
+            MenuOperations.Size = new Size(151, 38);
+            MenuOperations.Text = "Operations";
+            // 
+            // MenuOperationsDerivative
+            // 
+            MenuOperationsDerivative.Name = "MenuOperationsDerivative";
+            MenuOperationsDerivative.Size = new Size(360, 44);
+            MenuOperationsDerivative.Text = "Compute Derivative";
+            // 
+            // MenuOperationsIntegral
+            // 
+            MenuOperationsIntegral.Name = "MenuOperationsIntegral";
+            MenuOperationsIntegral.Size = new Size(360, 44);
+            MenuOperationsIntegral.Text = "Compute Integral";
+            // 
+            // MenuConvert
+            // 
+            MenuConvert.DropDownItems.AddRange(new ToolStripItem[] { MenuConvertEquation });
+            MenuConvert.Name = "MenuConvert";
+            MenuConvert.Size = new Size(118, 38);
+            MenuConvert.Text = "Convert";
+            // 
+            // MenuConvertEquation
+            // 
+            MenuConvertEquation.Name = "MenuConvertEquation";
+            MenuConvertEquation.Size = new Size(273, 44);
+            MenuConvertEquation.Text = "To Equation";
             // 
             // MenuMisc
             // 
@@ -141,16 +172,22 @@ namespace Graphing.Forms
             // MenuMiscCaches
             // 
             MenuMiscCaches.Name = "MenuMiscCaches";
-            MenuMiscCaches.Size = new Size(359, 44);
+            MenuMiscCaches.Size = new Size(299, 44);
             MenuMiscCaches.Text = "View Caches";
             MenuMiscCaches.Click += MenuMiscCaches_Click;
             // 
             // MiscMenuPreload
             // 
             MiscMenuPreload.Name = "MiscMenuPreload";
-            MiscMenuPreload.Size = new Size(359, 44);
+            MiscMenuPreload.Size = new Size(299, 44);
             MiscMenuPreload.Text = "Preload Cache";
             MiscMenuPreload.Click += MiscMenuPreload_Click;
+            // 
+            // MenuOperationsTranslate
+            // 
+            MenuOperationsTranslate.Name = "MenuOperationsTranslate";
+            MenuOperationsTranslate.Size = new Size(360, 44);
+            MenuOperationsTranslate.Text = "Translate";
             // 
             // GraphForm
             // 
@@ -172,17 +209,22 @@ namespace Graphing.Forms
 
         private Button ResetViewportButton;
         private MenuStrip GraphMenu;
-        private ToolStripMenuItem MenuColors;
         private ToolStripMenuItem MenuViewport;
         private ToolStripMenuItem ButtonViewportSetZoom;
         private ToolStripMenuItem ButtonViewportSetCenter;
         private ToolStripMenuItem ButtonViewportReset;
         private ToolStripMenuItem ButtonViewportResetWindow;
-        private ToolStripMenuItem MenuEquations;
-        private ToolStripMenuItem MenuEquationsDerivative;
-        private ToolStripMenuItem MenuEquationsIntegral;
+        private ToolStripMenuItem MenuOperations;
+        private ToolStripMenuItem MenuOperationsDerivative;
+        private ToolStripMenuItem MenuOperationsIntegral;
         private ToolStripMenuItem MenuMisc;
         private ToolStripMenuItem MenuMiscCaches;
         private ToolStripMenuItem MiscMenuPreload;
+        private ToolStripMenuItem MenuConvert;
+        private ToolStripMenuItem MenuConvertEquation;
+        private ToolStripMenuItem MenuElements;
+        private ToolStripMenuItem MenuElementsColors;
+        private ToolStripMenuItem MenuElementsRemove;
+        private ToolStripMenuItem MenuOperationsTranslate;
     }
 }

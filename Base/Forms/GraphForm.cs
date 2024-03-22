@@ -255,9 +255,15 @@ public partial class GraphForm : Form
         Invalidate(false);
     }
 
-    public void Graph(params Graphable[] able)
+    public void Graph(params Graphable[] newAbles)
     {
-        ables.AddRange(able);
+        ables.AddRange(newAbles);
+        RegenerateMenuItems();
+        Invalidate(false);
+    }
+    public void Ungraph(params Graphable[] ables)
+    {
+        this.ables.RemoveAll(x => ables.Contains(x));
         RegenerateMenuItems();
         Invalidate(false);
     }
@@ -348,9 +354,12 @@ public partial class GraphForm : Form
 
     private void RegenerateMenuItems()
     {
-        MenuColors.DropDownItems.Clear();
-        MenuEquationsDerivative.DropDownItems.Clear();
-        MenuEquationsIntegral.DropDownItems.Clear();
+        MenuElementsColors.DropDownItems.Clear();
+        MenuElementsRemove.DropDownItems.Clear();
+        MenuOperationsDerivative.DropDownItems.Clear();
+        MenuOperationsIntegral.DropDownItems.Clear();
+        MenuConvertEquation.DropDownItems.Clear();
+        MenuOperationsTranslate.DropDownItems.Clear();
 
         foreach (Graphable able in ables)
         {
@@ -360,7 +369,15 @@ public partial class GraphForm : Form
                 Text = able.Name
             };
             colorItem.Click += (o, e) => GraphColorPickerButton_Click(able);
-            MenuColors.DropDownItems.Add(colorItem);
+            MenuElementsColors.DropDownItems.Add(colorItem);
+
+            ToolStripMenuItem removeItem = new()
+            {
+                ForeColor = able.Color,
+                Text = able.Name
+            };
+            removeItem.Click += (o, e) => Ungraph(able);
+            MenuElementsRemove.DropDownItems.Add(removeItem);
 
             if (able is IDerivable derivable)
             {
@@ -370,7 +387,7 @@ public partial class GraphForm : Form
                     Text = able.Name
                 };
                 derivativeItem.Click += (o, e) => Graph(derivable.Derive());
-                MenuEquationsDerivative.DropDownItems.Add(derivativeItem);
+                MenuOperationsDerivative.DropDownItems.Add(derivativeItem);
             }
             if (able is IIntegrable integrable)
             {
@@ -380,20 +397,48 @@ public partial class GraphForm : Form
                     Text = able.Name
                 };
                 integralItem.Click += (o, e) => Graph(integrable.Integrate());
-                MenuEquationsIntegral.DropDownItems.Add(integralItem);
+                MenuOperationsIntegral.DropDownItems.Add(integralItem);
+            }
+            if (able is IEquationConvertible equConvert)
+            {
+                ToolStripMenuItem equItem = new()
+                {
+                    ForeColor = able.Color,
+                    Text = able.Name
+                };
+                equItem.Click += (o, e) =>
+                {
+                    Ungraph(able);
+                    Graph(equConvert.ToEquation());
+                };
+                MenuConvertEquation.DropDownItems.Add(equItem);
+            }
+            if (able is ITranslatable translatable)
+            {
+                ToolStripMenuItem transItem = new()
+                {
+                    ForeColor = able.Color,
+                    Text = able.Name
+                };
+                transItem.Click += (o, e) => ElementsOperationsTranslate_Click(able, translatable);
+                MenuOperationsTranslate.DropDownItems.Add(transItem);
             }
         }
     }
 
     private void ButtonViewportSetZoom_Click(object? sender, EventArgs e)
     {
-        SetZoomForm picker = new(this)
+        SetZoomForm zoomer = new(this)
         {
             StartPosition = FormStartPosition.Manual,
         };
-        picker.Location = new Point(Location.X + ClientRectangle.Width + 10,
-                                    Location.Y + (ClientRectangle.Height - picker.ClientRectangle.Height) / 2);
-        picker.ShowDialog();
+        zoomer.Location = new Point(Location.X + ClientRectangle.Width + 10,
+                                    Location.Y + (ClientRectangle.Height - zoomer.ClientRectangle.Height) / 2);
+        if (zoomer.Location.X + zoomer.Width > Screen.FromControl(this).WorkingArea.Width)
+        {
+            zoomer.StartPosition = FormStartPosition.WindowsDefaultLocation;
+        }
+        zoomer.ShowDialog();
     }
     private void ButtonViewportSetCenter_Click(object? sender, EventArgs e)
     {
@@ -445,5 +490,20 @@ public partial class GraphForm : Form
 
         foreach (Graphable able in Graphables) able.Preload(xRange, yRange, step);
         Invalidate(false);
+    }
+
+    private void ElementsOperationsTranslate_Click(Graphable ableRaw, ITranslatable ableTrans)
+    {
+        TranslateForm shifter = new(this, ableRaw, ableTrans)
+        {
+            StartPosition = FormStartPosition.Manual,
+        };
+        shifter.Location = new Point(Location.X + ClientRectangle.Width + 10,
+                                     Location.Y + (ClientRectangle.Height - shifter.ClientRectangle.Height) / 2);
+        if (shifter.Location.X + shifter.Width > Screen.FromControl(this).WorkingArea.Width)
+        {
+            shifter.StartPosition = FormStartPosition.WindowsDefaultLocation;
+        }
+        shifter.ShowDialog();
     }
 }

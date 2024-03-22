@@ -6,12 +6,17 @@ using System.Collections.Generic;
 
 namespace Graphing.Graphables;
 
-public class Equation : Graphable, IIntegrable, IDerivable
+public class Equation : Graphable, IIntegrable, IDerivable, ITranslatableXY
 {
     private static int equationNum;
 
+    public double OffsetX { get; set; }
+    public double OffsetY { get; set; }
+
     protected readonly EquationDelegate equ;
     protected readonly List<Float2> cache;
+
+    public event Action<GraphForm> OnInvalidate;
 
     public Equation(EquationDelegate equ)
     {
@@ -20,6 +25,11 @@ public class Equation : Graphable, IIntegrable, IDerivable
 
         this.equ = equ;
         cache = [];
+
+        OffsetX = 0;
+        OffsetY = 0;
+
+        OnInvalidate = delegate { };
     }
 
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
@@ -46,6 +56,7 @@ public class Equation : Graphable, IIntegrable, IDerivable
             previousX = currentX;
             previousY = currentY;
         }
+        OnInvalidate.Invoke(graph);
         return lines;
     }
 
@@ -61,15 +72,17 @@ public class Equation : Graphable, IIntegrable, IDerivable
     public override void EraseCache() => cache.Clear();
     protected double GetFromCache(double x, double epsilon)
     {
-        (double dist, double nearest, int index) = NearestCachedPoint(x);
-        if (dist < epsilon) return nearest;
+        (double dist, double nearest, int index) = NearestCachedPoint(x - OffsetX);
+        if (dist < epsilon) return nearest + OffsetY;
         else
         {
-            double result = equ(x);
-            cache.Insert(index + 1, new(x, result));
-            return result;
+            double result = equ(x - OffsetX);
+            cache.Insert(index + 1, new(x - OffsetX, result));
+            return result + OffsetY;
         }
     }
+
+    public double GetValueAt(double x) => GetFromCache(x, 0);
 
     protected (double dist, double y, int index) NearestCachedPoint(double x)
     {

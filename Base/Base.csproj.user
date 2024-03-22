@@ -16,6 +16,9 @@
     <Compile Update="Forms\SetZoomForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Forms\TranslateForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Forms\ViewCacheForm.cs">
       <SubType>Form</SubType>
     </Compile>
