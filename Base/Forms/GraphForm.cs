@@ -11,6 +11,7 @@ namespace Graphing.Forms;
 
 public partial class GraphForm : Form
 {
+    public static readonly Color BackgroundColor = Color.White;
     public static readonly Color MainAxisColor = Color.Black;
     public static readonly Color SemiAxisColor = Color.FromArgb(unchecked((int)0xFF_999999));
     public static readonly Color QuarterAxisColor = Color.FromArgb(unchecked((int)0xFF_E0E0E0));
@@ -200,7 +201,7 @@ public partial class GraphForm : Form
         Graphics g = e.Graphics;
         g.SmoothingMode = SmoothingMode.HighQuality;
 
-        Brush background = new SolidBrush(Color.White);
+        Brush background = new SolidBrush(BackgroundColor);
         g.FillRectangle(background, e.ClipRectangle);
 
         PaintGrid(g);
@@ -231,7 +232,7 @@ public partial class GraphForm : Form
                 if (ables[i].ShouldSelectGraphable(this, graphMousePos, 2.5))
                 {
                     Float2 selectedPoint = ables[i].GetSelectedPoint(this, graphMousePos);
-                    GraphUiCircle select = new(selectedPoint, 8);
+                    GraphUiCircle select = new(selectedPoint);
 
                     Int2 textPos = GraphSpaceToScreenSpace(select.center);
                     textPos.y -= (int)(DpiFloat * 32 / 192);

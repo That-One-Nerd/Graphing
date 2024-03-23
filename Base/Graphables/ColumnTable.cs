@@ -37,7 +37,7 @@ public class ColumnTable : Graphable
 
     public override long GetCacheBytes() => 16 * tableXY.Count;
 
-    public override Graphable DeepCopy() => new ColumnTable(width / 0.75, tableXY.ToArray().ToDictionary());
+    public override Graphable ShallowCopy() => new ColumnTable(width / 0.75, tableXY);
 
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
     {

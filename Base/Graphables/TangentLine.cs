@@ -56,7 +56,7 @@ public class TangentLine : Graphable, IEquationConvertible, ITranslatableX
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
     {
         Float2 point = new(Position, currentSlope.y);
-        return [MakeSlopeLine(), new GraphUiCircle(point, 8)];
+        return [MakeSlopeLine(), new GraphUiCircle(point)];
     }
     protected GraphLine MakeSlopeLine()
     {
@@ -81,7 +81,7 @@ public class TangentLine : Graphable, IEquationConvertible, ITranslatableX
         return result;
     }
 
-    public override Graphable DeepCopy() => new TangentLine(length, Position, parent);
+    public override Graphable ShallowCopy() => new TangentLine(length, Position, parent);
 
     public override void EraseCache() => slopeCache.Clear();
     public override long GetCacheBytes() => slopeCache.Count * 24;

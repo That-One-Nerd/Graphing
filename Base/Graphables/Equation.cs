@@ -116,7 +116,7 @@ public class Equation : Graphable, IIntegrable, IDerivable, ITranslatableXY
         }
     }
 
-    public override Graphable DeepCopy() => new Equation(equ);
+    public override Graphable ShallowCopy() => new Equation(equ);
 
     public override long GetCacheBytes() => cache.Count * 16;
 

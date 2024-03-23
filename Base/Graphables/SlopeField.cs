@@ -72,7 +72,7 @@ public class SlopeField : Graphable
         return result;
     }
 
-    public override Graphable DeepCopy() => new SlopeField(detail, equ);
+    public override Graphable ShallowCopy() => new SlopeField(detail, equ);
 
     public override void EraseCache() => cache.Clear();
     public override long GetCacheBytes() => cache.Count * 48;

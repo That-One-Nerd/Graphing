@@ -47,7 +47,7 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
         usingAlt = true;
     }
 
-    public override Graphable DeepCopy() => new IntegralEquation(this);
+    public override Graphable ShallowCopy() => new IntegralEquation(this);
 
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
     {
@@ -178,8 +178,8 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
 
     public Graphable Derive()
     {
-        if (usingAlt) return altBaseEqu!.DeepCopy();
-        else return (Equation)baseEqu!.DeepCopy();
+        if (usingAlt) return altBaseEqu!.ShallowCopy();
+        else return (Equation)baseEqu!.ShallowCopy();
     }
     public Graphable Integrate() => new IntegralEquation(this);
 

@@ -13,7 +13,7 @@ public record struct GraphUiCircle : IGraphPart
         center = new();
         radius = 1;
     }
-    public GraphUiCircle(Float2 center, int radius)
+    public GraphUiCircle(Float2 center, int radius = 8)
     {
         this.center = center;
         this.radius = radius;

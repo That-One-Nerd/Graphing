@@ -30,7 +30,7 @@ public abstract class Graphable
 
     public abstract IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph);
 
-    public abstract Graphable DeepCopy();
+    public abstract Graphable ShallowCopy();
 
     public virtual void EraseCache() { }
     public virtual long GetCacheBytes() => 0;
