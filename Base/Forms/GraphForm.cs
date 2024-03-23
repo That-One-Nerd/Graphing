@@ -504,6 +504,6 @@ public partial class GraphForm : Form
         {
             shifter.StartPosition = FormStartPosition.WindowsDefaultLocation;
         }
-        shifter.ShowDialog();
+        shifter.Show();
     }
 }

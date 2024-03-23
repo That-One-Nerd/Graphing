@@ -180,6 +180,7 @@
             Name = "TranslateForm";
             Padding = new System.Windows.Forms.Padding(15);
             Text = "Herm";
+            TopMost = true;
             ((System.ComponentModel.ISupportInitialize)TrackX).EndInit();
             ((System.ComponentModel.ISupportInitialize)TrackY).EndInit();
             ResumeLayout(false);

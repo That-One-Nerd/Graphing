@@ -9,8 +9,6 @@ public partial class TranslateForm : Form
     private readonly GraphForm refForm;
 
     // These variables both represent the same graphable.
-    private readonly Graphable ableRaw;
-    private readonly ITranslatable ableTrans;
     private readonly ITranslatableX? ableTransX;
     private readonly ITranslatableY? ableTransY;
 
@@ -26,20 +24,20 @@ public partial class TranslateForm : Form
         Text = $"Translate {ableRaw.Name}";
         TitleLabel.Text = $"Adjust Location for {ableRaw.Name}";
 
-        MinBoxX.Leave += (o, e) => UpdateFromMinBoxY();
+        MinBoxX.Leave += (o, e) => UpdateFromMinBoxX();
         MinBoxX.KeyDown += (o, e) =>
         {
-            if (e.KeyCode == Keys.Enter) UpdateFromMinBoxY();
+            if (e.KeyCode == Keys.Enter) UpdateFromMinBoxX();
         };
-        MaxBoxX.Leave += (o, e) => UpdateFromMaxBoxY();
+        MaxBoxX.Leave += (o, e) => UpdateFromMaxBoxX();
         MaxBoxX.KeyDown += (o, e) =>
         {
-            if (e.KeyCode == Keys.Enter) UpdateFromMaxBoxY();
+            if (e.KeyCode == Keys.Enter) UpdateFromMaxBoxX();
         };
-        ThisValueX.Leave += (o, e) => UpdateFromThisBoxY();
+        ThisValueX.Leave += (o, e) => UpdateFromThisBoxX();
         ThisValueX.KeyDown += (o, e) =>
         {
-            if (e.KeyCode == Keys.Enter) UpdateFromThisBoxY();
+            if (e.KeyCode == Keys.Enter) UpdateFromThisBoxX();
         };
 
         MinBoxY.Leave += (o, e) => UpdateFromMinBoxY();
@@ -59,8 +57,6 @@ public partial class TranslateForm : Form
         };
 
         refForm = graph;
-        this.ableRaw = ableRaw;
-        this.ableTrans = ableTrans;
 
         double curX = 0, curY = 0;
         if (ableTrans is ITranslatableX transX)
