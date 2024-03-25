@@ -2,9 +2,15 @@
 using Graphing.Parts;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Net.Http;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Graphing.Forms;
@@ -72,6 +78,8 @@ public partial class GraphForm : Form
         ZoomLevel = 1;
         initialWindowPos = Location;
         initialWindowSize = Size;
+
+        RunUpdateChecker();
     }
 
     public Int2 GraphSpaceToScreenSpace(Float2 graphPoint)
@@ -475,7 +483,7 @@ public partial class GraphForm : Form
         cacheForm.TopMost = true;
         cacheForm.Show();
     }
-    private void MiscMenuPreload_Click(object sender, EventArgs e)
+    private void MiscMenuPreload_Click(object? sender, EventArgs e)
     {
         Float2 min = MinVisibleGraph, max = MaxVisibleGraph;
         Float2 add = new(max.x - min.x, max.y - min.y);
@@ -506,5 +514,53 @@ public partial class GraphForm : Form
             shifter.StartPosition = FormStartPosition.WindowsDefaultLocation;
         }
         shifter.Show();
+    }
+
+    private async void RunUpdateChecker()
+    {
+        try
+        {
+            HttpClient http = new();
+            HttpRequestMessage request = new(HttpMethod.Get, "https://api.github.com/repos/That-One-Nerd/Graphing/releases");
+            request.Headers.Add("User-Agent", "ThatOneNerd.Graphing-Update-Checker");
+
+            HttpResponseMessage result = await http.SendAsync(request);
+            if (!result.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Failed to check for updates.");
+                return;
+            }
+
+            JsonArray arr = JsonSerializer.Deserialize<JsonArray>(await result.Content.ReadAsStreamAsync())!;
+            JsonObject latest = arr[0]!.AsObject();
+
+            Version curVersion = Version.Parse(Assembly.GetAssembly(typeof(GraphForm))!.FullName!.Split(',')[1].Trim()[8..^2]);
+            Version newVersion = Version.Parse(latest["tag_name"]!.GetValue<string>());
+
+            if (newVersion > curVersion)
+            {
+                // Updates are required.
+                DialogResult button = MessageBox.Show(
+                    $"A new update is available!\n{curVersion} -> {newVersion}\nWould you like to download the update?",
+                    "Graphing Calculator Update", MessageBoxButtons.YesNo);
+
+                if (button == DialogResult.No) return;
+
+                ProcessStartInfo website = new()
+                {
+                    FileName = latest["html_url"]!.GetValue<string>(),
+                    UseShellExecute = true
+                };
+                Process.Start(website);
+            }
+            else
+            {
+                Console.WriteLine($"Up-to-date.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to check for updates:\n{ex}");
+        }
     }
 }

@@ -13,7 +13,7 @@ internal static class Program
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
         Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-
+        
         GraphForm graph = new("One Of The Graphing Calculators Of All Time");
 
         Equation equA = new(Math.Sin),
