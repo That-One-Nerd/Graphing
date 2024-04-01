@@ -1,4 +1,5 @@
 ﻿using Graphing.Abstract;
+using Graphing.Helpers;
 using Graphing.Parts;
 using System;
 using System.Collections.Generic;
@@ -516,7 +517,7 @@ public partial class GraphForm : Form
         shifter.Show();
     }
 
-    private async void RunUpdateChecker()
+    private static async void RunUpdateChecker()
     {
         try
         {
@@ -537,6 +538,8 @@ public partial class GraphForm : Form
             Version curVersion = Version.Parse(Assembly.GetAssembly(typeof(GraphForm))!.FullName!.Split(',')[1].Trim()[8..^2]);
             Version newVersion = Version.Parse(latest["tag_name"]!.GetValue<string>());
 
+            curVersion = Version.Parse("1.0.0");
+
             if (newVersion > curVersion)
             {
                 // Updates are required.
@@ -546,12 +549,45 @@ public partial class GraphForm : Form
 
                 if (button == DialogResult.No) return;
 
-                ProcessStartInfo website = new()
+                string? project = UpdaterHelper.GetProjectPath();
+                if (project is null)
                 {
-                    FileName = latest["html_url"]!.GetValue<string>(),
-                    UseShellExecute = true
-                };
-                Process.Start(website);
+                    MessageBox.Show("Cannot find project root. You'll likely have to update manually.",
+                                    "Error running automatic updates.", MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
+                    return;
+                }
+
+                if (await UpdaterHelper.UsingNugetPackage(project))
+                {
+                    Console.WriteLine($"Attempting to update via the NuGet Package Manager.");
+                    bool status = await UpdaterHelper.UpdateProjectByNuget(latest["tag_name"]!.GetValue<string>(), project);
+                    if (!status)
+                    {
+                        MessageBox.Show("Failed to update with the NuGet Package Manager. " +
+                                        "You'll likely have to update manually.",
+                                        "Error running automatic updates.", MessageBoxButtons.OK,
+                                        MessageBoxIcon.Error);
+                        return;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Attempting to update via a GitHub asset download.");
+                    bool status = await UpdaterHelper.UpdateProjectByGitHub(latest["tag_name"]!.GetValue<string>(), project);
+                    if (status)
+                    {
+                        MessageBox.Show("Update ready. Restart the project to complete the update.");
+                    }
+                    else
+                    {
+                        MessageBox.Show("Failed to update with an automatic download. " +
+                                        "You'll likely have to update manually.",
+                                        "Error running automatic updates.", MessageBoxButtons.OK,
+                                        MessageBoxIcon.Error);
+                        return;
+                    }
+                }
             }
             else
             {
