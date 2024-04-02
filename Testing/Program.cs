@@ -19,7 +19,8 @@ internal static class Program
         Equation equA = new(Math.Sin),
                  equB = new(Math.Cos);
         EquationDifference diff = new(2, equA, equB);
-        graph.Graph(equA, equB, diff);
+        ParametricEquation equC = new(0, 4, t => t * t - 1, t => Math.Sqrt(t) + t + 1);
+        graph.Graph(equA, equB, diff, equC);
 
         Application.Run(graph);
     }
