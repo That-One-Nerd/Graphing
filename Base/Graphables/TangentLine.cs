@@ -6,8 +6,10 @@ using System.Collections.Generic;
 
 namespace Graphing.Graphables;
 
-public class TangentLine : Graphable, IEquationConvertible, ITranslatableX
+public class TangentLine : Graphable, IConvertEquation, ITranslatableX
 {
+    public bool UngraphWhenConvertedToEquation => true;
+
     public double Position
     {
         get => _position;

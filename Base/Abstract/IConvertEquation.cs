@@ -2,7 +2,9 @@
 
 namespace Graphing.Abstract;
 
-public interface IEquationConvertible
+public interface IConvertEquation
 {
+    public bool UngraphWhenConvertedToEquation { get; }
+
     public Equation ToEquation();
 }

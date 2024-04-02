@@ -6,9 +6,11 @@ using System.Collections.Generic;
 
 namespace Graphing.Graphables;
 
-public class Equation : Graphable, IIntegrable, IDerivable, ITranslatableXY
+public class Equation : Graphable, IIntegrable, IDerivable, ITranslatableXY, IConvertSlopeField
 {
     private static int equationNum;
+
+    public bool UngraphWhenConvertedToSlopeField => false;
 
     public double OffsetX { get; set; }
     public double OffsetY { get; set; }
@@ -60,14 +62,22 @@ public class Equation : Graphable, IIntegrable, IDerivable, ITranslatableXY
         return lines;
     }
 
-    public Graphable Derive() => new Equation(x =>
+    protected double DerivativeAtPoint(double x)
     {
         const double step = 1e-3;
         return (equ(x + step) - equ(x)) / step;
-    });
+    }
+
+    public Graphable Derive() => new Equation(DerivativeAtPoint);
     public Graphable Integrate() => new IntegralEquation(this);
 
     public EquationDelegate GetDelegate() => equ;
+
+    public SlopeField ToSlopeField(int detail) => new(detail, (x, y) => DerivativeAtPoint(x))
+    {
+        Color = Color,
+        Name = $"Slope Field of {Name}"
+    };
 
     public override void EraseCache() => cache.Clear();
     protected double GetFromCache(double x, double epsilon)

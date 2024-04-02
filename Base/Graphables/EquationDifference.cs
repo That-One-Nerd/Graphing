@@ -5,8 +5,10 @@ using System.Collections.Generic;
 
 namespace Graphing.Graphables;
 
-public class EquationDifference : Graphable, ITranslatableX, IEquationConvertible
+public class EquationDifference : Graphable, ITranslatableX, IConvertEquation
 {
+    public bool UngraphWhenConvertedToEquation => true;
+
     public double Position
     {
         get => _position;

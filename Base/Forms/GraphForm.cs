@@ -369,6 +369,7 @@ public partial class GraphForm : Form
         MenuOperationsDerivative.DropDownItems.Clear();
         MenuOperationsIntegral.DropDownItems.Clear();
         MenuConvertEquation.DropDownItems.Clear();
+        MenuConvertSlopeField.DropDownItems.Clear();
         MenuOperationsTranslate.DropDownItems.Clear();
 
         foreach (Graphable able in ables)
@@ -409,7 +410,7 @@ public partial class GraphForm : Form
                 integralItem.Click += (o, e) => Graph(integrable.Integrate());
                 MenuOperationsIntegral.DropDownItems.Add(integralItem);
             }
-            if (able is IEquationConvertible equConvert)
+            if (able is IConvertEquation equConvert)
             {
                 ToolStripMenuItem equItem = new()
                 {
@@ -418,10 +419,24 @@ public partial class GraphForm : Form
                 };
                 equItem.Click += (o, e) =>
                 {
-                    Ungraph(able);
+                    if (equConvert.UngraphWhenConvertedToEquation) Ungraph(able);
                     Graph(equConvert.ToEquation());
                 };
                 MenuConvertEquation.DropDownItems.Add(equItem);
+            }
+            if (able is IConvertSlopeField sfConvert)
+            {
+                ToolStripMenuItem sfItem = new()
+                {
+                    ForeColor = able.Color,
+                    Text = able.Name
+                };
+                sfItem.Click += (o, e) =>
+                {
+                    if (sfConvert.UngraphWhenConvertedToSlopeField) Ungraph(able);
+                    Graph(sfConvert.ToSlopeField(2));
+                };
+                MenuConvertSlopeField.DropDownItems.Add(sfItem);
             }
             if (able is ITranslatable translatable)
             {
@@ -537,8 +552,6 @@ public partial class GraphForm : Form
 
             Version curVersion = Version.Parse(Assembly.GetAssembly(typeof(GraphForm))!.FullName!.Split(',')[1].Trim()[8..^2]);
             Version newVersion = Version.Parse(latest["tag_name"]!.GetValue<string>());
-
-            curVersion = Version.Parse("1.0.0");
 
             if (newVersion > curVersion)
             {

@@ -44,12 +44,13 @@ namespace Graphing.Forms
             MenuOperations = new ToolStripMenuItem();
             MenuOperationsDerivative = new ToolStripMenuItem();
             MenuOperationsIntegral = new ToolStripMenuItem();
+            MenuOperationsTranslate = new ToolStripMenuItem();
             MenuConvert = new ToolStripMenuItem();
             MenuConvertEquation = new ToolStripMenuItem();
             MenuMisc = new ToolStripMenuItem();
             MenuMiscCaches = new ToolStripMenuItem();
             MiscMenuPreload = new ToolStripMenuItem();
-            MenuOperationsTranslate = new ToolStripMenuItem();
+            MenuConvertSlopeField = new ToolStripMenuItem();
             GraphMenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -121,13 +122,13 @@ namespace Graphing.Forms
             // MenuElementsColors
             // 
             MenuElementsColors.Name = "MenuElementsColors";
-            MenuElementsColors.Size = new Size(359, 44);
+            MenuElementsColors.Size = new Size(233, 44);
             MenuElementsColors.Text = "Colors";
             // 
             // MenuElementsRemove
             // 
             MenuElementsRemove.Name = "MenuElementsRemove";
-            MenuElementsRemove.Size = new Size(359, 44);
+            MenuElementsRemove.Size = new Size(233, 44);
             MenuElementsRemove.Text = "Remove";
             // 
             // MenuOperations
@@ -149,9 +150,15 @@ namespace Graphing.Forms
             MenuOperationsIntegral.Size = new Size(360, 44);
             MenuOperationsIntegral.Text = "Compute Integral";
             // 
+            // MenuOperationsTranslate
+            // 
+            MenuOperationsTranslate.Name = "MenuOperationsTranslate";
+            MenuOperationsTranslate.Size = new Size(360, 44);
+            MenuOperationsTranslate.Text = "Translate";
+            // 
             // MenuConvert
             // 
-            MenuConvert.DropDownItems.AddRange(new ToolStripItem[] { MenuConvertEquation });
+            MenuConvert.DropDownItems.AddRange(new ToolStripItem[] { MenuConvertEquation, MenuConvertSlopeField });
             MenuConvert.Name = "MenuConvert";
             MenuConvert.Size = new Size(118, 38);
             MenuConvert.Text = "Convert";
@@ -159,7 +166,7 @@ namespace Graphing.Forms
             // MenuConvertEquation
             // 
             MenuConvertEquation.Name = "MenuConvertEquation";
-            MenuConvertEquation.Size = new Size(273, 44);
+            MenuConvertEquation.Size = new Size(359, 44);
             MenuConvertEquation.Text = "To Equation";
             // 
             // MenuMisc
@@ -183,11 +190,11 @@ namespace Graphing.Forms
             MiscMenuPreload.Text = "Preload Cache";
             MiscMenuPreload.Click += MiscMenuPreload_Click;
             // 
-            // MenuOperationsTranslate
+            // MenuConvertSlopeField
             // 
-            MenuOperationsTranslate.Name = "MenuOperationsTranslate";
-            MenuOperationsTranslate.Size = new Size(360, 44);
-            MenuOperationsTranslate.Text = "Translate";
+            MenuConvertSlopeField.Name = "MenuConvertSlopeField";
+            MenuConvertSlopeField.Size = new Size(359, 44);
+            MenuConvertSlopeField.Text = "To Slope Field";
             // 
             // GraphForm
             // 
@@ -226,5 +233,6 @@ namespace Graphing.Forms
         private ToolStripMenuItem MenuElementsColors;
         private ToolStripMenuItem MenuElementsRemove;
         private ToolStripMenuItem MenuOperationsTranslate;
+        private ToolStripMenuItem MenuConvertSlopeField;
     }
 }
