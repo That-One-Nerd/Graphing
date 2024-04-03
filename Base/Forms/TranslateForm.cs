@@ -100,6 +100,8 @@ public partial class TranslateForm : Form
             TitleLabel.Text = $"There doesn't seem to be anything you can translate for {ableRaw.Name}.";
         }
 
+        // TODO: Maybe replace these default limits with what's visible on screen?
+        //       Tried it and it got a bit confusing so maybe not.
         minX = -10;
         maxX = 10;
         minY = -10;
@@ -272,11 +274,10 @@ public partial class TranslateForm : Form
     private static double Lerp(double a, double b, double t) => a + t * (b - a);
     private static double InverseLerp(double a, double b, double c) => (c - a) / (b - a);
 
-    private void TrackX_Scroll(object? sender, EventArgs e)
+    private void TrackX_Scroll(object sender, EventArgs e)
     {
         UpdateFromSliderX(true);
     }
-
     private void TrackY_Scroll(object sender, EventArgs e)
     {
         UpdateFromSliderY(true);

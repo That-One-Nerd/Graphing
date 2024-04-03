@@ -3,7 +3,6 @@ using Graphing.Helpers;
 using Graphing.Parts;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
@@ -11,7 +10,6 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Graphing.Forms;
@@ -278,6 +276,13 @@ public partial class GraphForm : Form
         Invalidate(false);
     }
 
+    public bool IsGraphPointVisible(Float2 point)
+    {
+        Int2 pixelPos = GraphSpaceToScreenSpace(point);
+        return pixelPos.x >= 0 && pixelPos.x < ClientRectangle.Width &&
+               pixelPos.y >= 0 && pixelPos.y < ClientRectangle.Height;
+    }
+
     private bool mouseDrag = false;
     private Int2 initialMouseLocation;
     private Float2 initialScreenCenter;
@@ -371,6 +376,8 @@ public partial class GraphForm : Form
         MenuConvertEquation.DropDownItems.Clear();
         MenuConvertSlopeField.DropDownItems.Clear();
         MenuOperationsTranslate.DropDownItems.Clear();
+        // At some point, we'll have a Convert To Column Table button,
+        // but I'll need to make a form for the ranges when I do that.
 
         foreach (Graphable able in ables)
         {

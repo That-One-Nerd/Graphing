@@ -23,6 +23,7 @@ public class ColumnTable : Graphable
     }
     public ColumnTable(double step, Equation equation, double min, double max)
     {
+        Color = equation.Color;
         Name = $"Column Table for {equation.Name}";
 
         tableXY = [];
@@ -45,7 +46,7 @@ public class ColumnTable : Graphable
         foreach (KeyValuePair<double, double> col in tableXY)
         {
             items.Add(GraphRectangle.FromSize(new Float2(col.Key, col.Value / 2),
-                                              new Float2(width, col.Value)));
+                                              new Float2(width, col.Value), 0.625));
         }
 
         return items;

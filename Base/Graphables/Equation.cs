@@ -6,10 +6,12 @@ using System.Collections.Generic;
 
 namespace Graphing.Graphables;
 
-public class Equation : Graphable, IIntegrable, IDerivable, ITranslatableXY, IConvertSlopeField
+public class Equation : Graphable, IIntegrable, IDerivable, ITranslatableXY, IConvertSlopeField,
+                                   IConvertColumnTable
 {
     private static int equationNum;
 
+    public bool UngraphWhenConvertedToColumnTable => false;
     public bool UngraphWhenConvertedToSlopeField => false;
 
     public double OffsetX { get; set; }
@@ -65,7 +67,7 @@ public class Equation : Graphable, IIntegrable, IDerivable, ITranslatableXY, ICo
     protected double DerivativeAtPoint(double x)
     {
         const double step = 1e-3;
-        return (equ(x + step) - equ(x)) / step;
+        return (equ(x + step - OffsetX) - equ(x - OffsetX)) / step;
     }
 
     public Graphable Derive() => new Equation(DerivativeAtPoint);
@@ -78,6 +80,8 @@ public class Equation : Graphable, IIntegrable, IDerivable, ITranslatableXY, ICo
         Color = Color,
         Name = $"Slope Field of {Name}"
     };
+    public ColumnTable ToColumnTable(double start, double end, int detail)
+        => new(1.0 / detail, this, start, end);
 
     public override void EraseCache() => cache.Clear();
     protected double GetFromCache(double x, double epsilon)

@@ -164,7 +164,7 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
         }
         else
         {
-            stepY += baseEquDel!(stepX) * dX;
+            stepY += (baseEquDel!(stepX - baseEqu!.OffsetX) + baseEqu.OffsetY) * dX;
         }
     }
 
