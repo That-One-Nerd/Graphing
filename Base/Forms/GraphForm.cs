@@ -238,19 +238,8 @@ public partial class GraphForm : Form
             {
                 if (ables[i].ShouldSelectGraphable(this, graphMousePos, 2.5))
                 {
-                    Float2 selectedPoint = ables[i].GetSelectedPoint(this, graphMousePos);
-                    GraphUiCircle select = new(selectedPoint);
-
-                    Int2 textPos = GraphSpaceToScreenSpace(select.center);
-                    textPos.y -= (int)(DpiFloat * 32 / 192);
-
-                    string content = $"({selectedPoint.x:0.00}, {selectedPoint.y:0.00})";
-
-                    SizeF textSize = g.MeasureString(content, textFont);
-                    g.FillRectangle(background, new Rectangle(textPos.x, textPos.y,
-                                         (int)textSize.Width, (int)textSize.Height));
-                    g.DrawString(content, textFont, graphPens[i].Brush, new Point(textPos.x, textPos.y));
-                    select.Render(this, g, graphPens[i]);
+                    IEnumerable<IGraphPart> selectionParts = ables[i].GetSelectionItemsToRender(this, graphMousePos);
+                    foreach (IGraphPart selPart in selectionParts) selPart.Render(this, g, graphPens[i]);
                 }
             }
         }

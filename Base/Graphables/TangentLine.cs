@@ -3,6 +3,7 @@ using Graphing.Forms;
 using Graphing.Parts;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace Graphing.Graphables;
 
@@ -58,7 +59,11 @@ public class TangentLine : Graphable, IConvertEquation, ITranslatableX
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
     {
         Float2 point = new(Position, currentSlope.y);
-        return [MakeSlopeLine(), new GraphUiCircle(point)];
+        return
+        [
+            MakeSlopeLine(),
+            new GraphUiCircle(point)
+        ];
     }
     protected GraphLine MakeSlopeLine()
     {
@@ -107,7 +112,7 @@ public class TangentLine : Graphable, IConvertEquation, ITranslatableX
         double totalDist = Math.Sqrt(dist.x * dist.x + dist.y * dist.y);
         return totalDist <= allowedDist;
     }
-    public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos)
+    public override IEnumerable<IGraphPart> GetSelectionItemsToRender(in GraphForm graph, Float2 graphMousePos)
     {
         GraphLine line = MakeSlopeLine();
 
@@ -115,7 +120,15 @@ public class TangentLine : Graphable, IConvertEquation, ITranslatableX
                                   Math.Min(line.a.x, line.b.x),
                                   Math.Max(line.a.x, line.b.x)),
                lineY = currentSlope.x * (lineX - Position) + currentSlope.y;
-        return new Float2(lineX, lineY);
+
+        double slope = currentSlope.x;
+        Float2 point = new(lineX, lineY);
+
+        return
+        [
+            new GraphUiText($"M = {slope:0.000}", point, ContentAlignment.BottomLeft),
+            new GraphUiCircle(new(lineX, lineY))
+        ];
     }
 
     public override void Preload(Float2 xRange, Float2 yRange, double step)

@@ -234,6 +234,6 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
         double totalDist = Math.Sqrt(dist.x * dist.x + dist.y * dist.y);
         return totalDist <= allowedDist;
     }
-    public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos) =>
-        new(graphMousePos.x, IntegralAtPoint(graphMousePos.x));
+    public override IEnumerable<IGraphPart> GetSelectionItemsToRender(in GraphForm graph, Float2 graphMousePos) =>
+        [new GraphUiCircle(new(graphMousePos.x, IntegralAtPoint(graphMousePos.x)))];
 }

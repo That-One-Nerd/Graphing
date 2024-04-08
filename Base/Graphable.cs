@@ -37,5 +37,5 @@ public abstract class Graphable
     public virtual void Preload(Float2 xRange, Float2 yRange, double step) { }
 
     public virtual bool ShouldSelectGraphable(in GraphForm graph, Float2 graphMousePos, double factor) => false;
-    public virtual Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos) => default;
+    public virtual IEnumerable<IGraphPart> GetSelectionItemsToRender(in GraphForm graph, Float2 graphMousePos) => [];
 }

@@ -2,6 +2,7 @@
 using Graphing.Parts;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace Graphing.Graphables;
 
@@ -101,7 +102,7 @@ public class SlopeField : Graphable
         double totalDist = Math.Sqrt(dist.x * dist.x + dist.y * dist.y);
         return totalDist <= allowedDist;
     }
-    public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos)
+    public override IEnumerable<IGraphPart> GetSelectionItemsToRender(in GraphForm graph, Float2 graphMousePos)
     {
         Float2 nearestPos = new(Math.Round(graphMousePos.x * detail) / detail,
                                 Math.Round(graphMousePos.y * detail) / detail);
@@ -114,7 +115,11 @@ public class SlopeField : Graphable
                lineY = slope * (lineX - nearestPos.x) + nearestPos.y;
         Float2 point = new(lineX, lineY);
 
-        return point;
+        return
+        [
+            new GraphUiText($"M = {slope:0.000}", point, ContentAlignment.BottomLeft),
+            new GraphUiCircle(point)
+        ];
     }
 
     public override void Preload(Float2 xRange, Float2 yRange, double step)

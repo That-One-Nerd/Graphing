@@ -45,7 +45,9 @@ public record struct GraphRectangle : IGraphPart
                         start.y - end.y);
 
         if (size.x == 0 || size.y == 0) return;
+        Color initialColor = pen.Color;
         pen.Color = Color.FromArgb((int)(opacity * 255), pen.Color);
         g.FillRectangle(pen.Brush, new Rectangle(start.x, end.y, size.x, size.y));
+        pen.Color = initialColor;
     }
 }

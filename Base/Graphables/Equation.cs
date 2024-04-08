@@ -3,6 +3,7 @@ using Graphing.Forms;
 using Graphing.Parts;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace Graphing.Graphables;
 
@@ -148,8 +149,15 @@ public class Equation : Graphable, IIntegrable, IDerivable, ITranslatableXY, ICo
         double totalDist = Math.Sqrt(dist.x * dist.x + dist.y * dist.y);
         return totalDist <= allowedDist;
     }
-    public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos) =>
-        new(graphMousePos.x, GetFromCache(graphMousePos.x, 1e-3));
+    public override IEnumerable<IGraphPart> GetSelectionItemsToRender(in GraphForm graph, Float2 graphMousePos)
+    {
+        Float2 point = new(graphMousePos.x, GetFromCache(graphMousePos.x, 1e-3));
+        return
+        [
+            new GraphUiText($"({point.x:0.00}, {point.y:0.00})", point, ContentAlignment.BottomLeft),
+            new GraphUiCircle(point),
+        ];
+    }
 
     public override void Preload(Float2 xRange, Float2 yRange, double step)
     {

@@ -20,7 +20,8 @@ internal static class Program
                  equB = new(Math.Cos);
         EquationDifference diff = new(2, equA, equB);
         ParametricEquation equC = new(0, 20, t => 0.0375 * t * Math.Cos(t), t => 0.0625 * t * Math.Sin(t) + 3);
-        graph.Graph(equA, equB, diff, equC, equA.ToColumnTable(-1, 1, 2));
+        TangentLine tanA = new(2, 2, equA);
+        graph.Graph(equA, equB, diff, equC, equB.ToColumnTable(-3, 3, 2), tanA);
 
         Application.Run(graph);
     }
