@@ -27,26 +27,16 @@ public partial class GraphForm : Form
 
     public float DpiFloat { get; private set; }
 
-    public double ZoomLevel
+    public Float2 ZoomLevel
     {
         get => _zoomLevel;
         set
         {
-            double oldZoom = ZoomLevel;
-
-            _zoomLevel = Math.Clamp(value, 1e-5, 1e3);
-
-            int totalSegments = 0;
-            foreach (Graphable able in ables) totalSegments += able.GetItemsToRender(this).Count();
-
-            if (totalSegments > 10_000)
-            {
-                _zoomLevel = oldZoom;
-                return; // Too many segments, stop.
-            }
+            _zoomLevel = new(Math.Clamp(value.x, 1e-5, 1e3),
+                             Math.Clamp(value.y, 1e-5, 1e3));
         }
     }
-    private double _zoomLevel;
+    private Float2 _zoomLevel;
 
     private readonly Point initialWindowPos;
     private readonly Size initialWindowSize;
@@ -74,7 +64,7 @@ public partial class GraphForm : Form
         DpiFloat = (float)((Dpi.x + Dpi.y) / 2);
 
         ables = [];
-        ZoomLevel = 1;
+        ZoomLevel = new(1, 1);
         initialWindowPos = Location;
         initialWindowSize = Size;
 
@@ -88,8 +78,8 @@ public partial class GraphForm : Form
         graphPoint.x -= ScreenCenter.x;
         graphPoint.y -= ScreenCenter.y;
 
-        graphPoint.x *= Dpi.x / ZoomLevel;
-        graphPoint.y *= Dpi.y / ZoomLevel;
+        graphPoint.x *= Dpi.x / ZoomLevel.x;
+        graphPoint.y *= Dpi.y / ZoomLevel.y;
 
         graphPoint.x += ClientRectangle.Width / 2.0;
         graphPoint.y += ClientRectangle.Height / 2.0;
@@ -103,8 +93,8 @@ public partial class GraphForm : Form
         result.x -= ClientRectangle.Width / 2.0;
         result.y -= ClientRectangle.Height / 2.0;
 
-        result.x /= Dpi.x / ZoomLevel;
-        result.y /= Dpi.y / ZoomLevel;
+        result.x /= Dpi.x / ZoomLevel.x;
+        result.y /= Dpi.y / ZoomLevel.y;
 
         result.x += ScreenCenter.x;
         result.y += ScreenCenter.y;
@@ -116,19 +106,20 @@ public partial class GraphForm : Form
 
     protected virtual void PaintGrid(Graphics g)
     {
-        double axisScale = Math.Pow(2, Math.Round(Math.Log2(ZoomLevel)));
+        double axisScaleX = Math.Pow(2, Math.Round(Math.Log2(ZoomLevel.x))),
+               axisScaleY = Math.Pow(2, Math.Round(Math.Log2(ZoomLevel.y)));
 
         // Draw horizontal/vertical quarter-axis.
         Brush quarterBrush = new SolidBrush(QuarterAxisColor);
         Pen quarterPen = new(quarterBrush, DpiFloat * 2 / 192);
 
-        for (double x = Math.Ceiling(MinVisibleGraph.x * 4 / axisScale) * axisScale / 4; x <= Math.Floor(MaxVisibleGraph.x * 4 / axisScale) * axisScale / 4; x += axisScale / 4)
+        for (double x = Math.Ceiling(MinVisibleGraph.x * 4 / axisScaleX) * axisScaleX / 4; x <= Math.Floor(MaxVisibleGraph.x * 4 / axisScaleX) * axisScaleX / 4; x += axisScaleX / 4)
         {
             Int2 startPos = GraphSpaceToScreenSpace(new Float2(x, MinVisibleGraph.y)),
                  endPos = GraphSpaceToScreenSpace(new Float2(x, MaxVisibleGraph.y));
             g.DrawLine(quarterPen, startPos, endPos);
         }
-        for (double y = Math.Ceiling(MinVisibleGraph.y * 4 / axisScale) * axisScale / 4; y <= Math.Floor(MaxVisibleGraph.y * 4 / axisScale) * axisScale / 4; y += axisScale / 4)
+        for (double y = Math.Ceiling(MinVisibleGraph.y * 4 / axisScaleY) * axisScaleY / 4; y <= Math.Floor(MaxVisibleGraph.y * 4 / axisScaleY) * axisScaleY / 4; y += axisScaleY / 4)
         {
             Int2 startPos = GraphSpaceToScreenSpace(new Float2(MinVisibleGraph.x, y)),
                  endPos = GraphSpaceToScreenSpace(new Float2(MaxVisibleGraph.x, y));
@@ -139,13 +130,13 @@ public partial class GraphForm : Form
         Brush semiBrush = new SolidBrush(SemiAxisColor);
         Pen semiPen = new(semiBrush, DpiFloat * 2 / 192);
 
-        for (double x = Math.Ceiling(MinVisibleGraph.x / axisScale) * axisScale; x <= Math.Floor(MaxVisibleGraph.x / axisScale) * axisScale; x += axisScale)
+        for (double x = Math.Ceiling(MinVisibleGraph.x / axisScaleX) * axisScaleX; x <= Math.Floor(MaxVisibleGraph.x / axisScaleX) * axisScaleX; x += axisScaleX)
         {
             Int2 startPos = GraphSpaceToScreenSpace(new Float2(x, MinVisibleGraph.y)),
                  endPos = GraphSpaceToScreenSpace(new Float2(x, MaxVisibleGraph.y));
             g.DrawLine(semiPen, startPos, endPos);
         }
-        for (double y = Math.Ceiling(MinVisibleGraph.y / axisScale) * axisScale; y <= Math.Floor(MaxVisibleGraph.y / axisScale) * axisScale; y += axisScale)
+        for (double y = Math.Ceiling(MinVisibleGraph.y / axisScaleY) * axisScaleY; y <= Math.Floor(MaxVisibleGraph.y / axisScaleY) * axisScaleY; y += axisScaleY)
         {
             Int2 startPos = GraphSpaceToScreenSpace(new Float2(MinVisibleGraph.x, y)),
                  endPos = GraphSpaceToScreenSpace(new Float2(MaxVisibleGraph.x, y));
@@ -166,14 +157,15 @@ public partial class GraphForm : Form
     }
     protected virtual void PaintUnits(Graphics g)
     {
-        double axisScale = Math.Pow(2, Math.Round(Math.Log(ZoomLevel, 2)));
+        double axisScaleX = Math.Pow(2, Math.Round(Math.Log2(ZoomLevel.x))),
+               axisScaleY = Math.Pow(2, Math.Round(Math.Log2(ZoomLevel.y)));
         Brush textBrush = new SolidBrush(UnitsTextColor);
         Font textFont = new(Font.Name, 9, FontStyle.Regular);
 
         // X-axis
         int minX = (int)(DpiFloat * 50 / 192),
             maxX = ClientRectangle.Height - (int)(DpiFloat * 40 / 192);
-        for (double x = Math.Ceiling(MinVisibleGraph.x / axisScale) * axisScale; x <= MaxVisibleGraph.x; x += axisScale)
+        for (double x = Math.Ceiling(MinVisibleGraph.x / axisScaleX) * axisScaleX; x <= MaxVisibleGraph.x; x += axisScaleX)
         {
             if (x == 0) x = 0; // Fixes -0
 
@@ -187,7 +179,7 @@ public partial class GraphForm : Form
 
         // Y-axis
         int minY = (int)(DpiFloat * 10 / 192);
-        for (double y = Math.Ceiling(MinVisibleGraph.y / axisScale) * axisScale; y <= MaxVisibleGraph.y; y += axisScale)
+        for (double y = Math.Ceiling(MinVisibleGraph.y / axisScaleY) * axisScaleY; y <= MaxVisibleGraph.y; y += axisScaleY)
         {
             if (y == 0) continue;
 
@@ -304,7 +296,7 @@ public partial class GraphForm : Form
         {
             Int2 pixelDiff = new(initialMouseLocation.x - Cursor.Position.X,
                              initialMouseLocation.y - Cursor.Position.Y);
-            Float2 graphDiff = new(pixelDiff.x * ZoomLevel / Dpi.x, pixelDiff.y * ZoomLevel / Dpi.y);
+            Float2 graphDiff = new(pixelDiff.x * ZoomLevel.x / Dpi.x, pixelDiff.y * ZoomLevel.y / Dpi.y);
             ScreenCenter = new(initialScreenCenter.x + graphDiff.x,
                                initialScreenCenter.y + graphDiff.y);
         }
@@ -318,7 +310,7 @@ public partial class GraphForm : Form
         {
             Int2 pixelDiff = new(initialMouseLocation.x - Cursor.Position.X,
                              initialMouseLocation.y - Cursor.Position.Y);
-            Float2 graphDiff = new(pixelDiff.x * ZoomLevel / Dpi.x, pixelDiff.y * ZoomLevel / Dpi.y);
+            Float2 graphDiff = new(pixelDiff.x * ZoomLevel.x / Dpi.x, pixelDiff.y * ZoomLevel.y / Dpi.y);
             ScreenCenter = new(initialScreenCenter.x + graphDiff.x,
                                initialScreenCenter.y + graphDiff.y);
             Invalidate(false);
@@ -327,14 +319,18 @@ public partial class GraphForm : Form
     }
     protected override void OnMouseWheel(MouseEventArgs e)
     {
-        ZoomLevel *= 1 - e.Delta * 0.00075; // Zoom factor.
+        Float2 newZoom = ZoomLevel;
+        newZoom.x *= 1 - e.Delta * 0.00075; // Zoom factor.
+        newZoom.y *= 1 - e.Delta * 0.00075;
+        ZoomLevel = newZoom;
+
         Invalidate(false);
     }
 
     private void ResetViewportButton_Click(object? sender, EventArgs e)
     {
         ScreenCenter = new Float2(0, 0);
-        ZoomLevel = 1;
+        ZoomLevel = new(1, 1);
         Invalidate(false);
     }
     private void GraphColorPickerButton_Click(Graphable able)
@@ -449,17 +445,7 @@ public partial class GraphForm : Form
 
     private void ButtonViewportSetZoom_Click(object? sender, EventArgs e)
     {
-        SetZoomForm zoomer = new(this)
-        {
-            StartPosition = FormStartPosition.Manual,
-        };
-        zoomer.Location = new Point(Location.X + ClientRectangle.Width + 10,
-                                    Location.Y + (ClientRectangle.Height - zoomer.ClientRectangle.Height) / 2);
-        if (zoomer.Location.X + zoomer.Width > Screen.FromControl(this).WorkingArea.Width)
-        {
-            zoomer.StartPosition = FormStartPosition.WindowsDefaultLocation;
-        }
-        zoomer.ShowDialog();
+        MessageBox.Show("TODO", "Set Viewport Zoom", MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
     private void ButtonViewportSetCenter_Click(object? sender, EventArgs e)
     {
@@ -468,7 +454,7 @@ public partial class GraphForm : Form
     private void ButtonViewportReset_Click(object? sender, EventArgs e)
     {
         ScreenCenter = new Float2(0, 0);
-        ZoomLevel = 1;
+        ZoomLevel = new(1, 1);
         Invalidate(false);
     }
     private void ButtonViewportResetWindow_Click(object? sender, EventArgs e)

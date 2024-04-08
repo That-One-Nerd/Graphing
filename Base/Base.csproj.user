@@ -13,9 +13,6 @@
     <Compile Update="Forms\GraphForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="Forms\SetZoomForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Update="Forms\TranslateForm.cs">
       <SubType>Form</SubType>
     </Compile>
