@@ -21,6 +21,7 @@ public partial class GraphForm : Form
     public static readonly Color SemiAxisColor = Color.FromArgb(unchecked((int)0xFF_999999));
     public static readonly Color QuarterAxisColor = Color.FromArgb(unchecked((int)0xFF_E0E0E0));
     public static readonly Color UnitsTextColor = Color.Black;
+    public static readonly Color ZoomBoxColor = Color.Black;
 
     public Float2 ScreenCenter { get; private set; }
     public Float2 Dpi { get; private set; }
@@ -223,9 +224,8 @@ public partial class GraphForm : Form
 
         // Equation selection detection.
         // This system lets you select multiple graphs, and that's cool by me.
-        if (ableDrag)
+        if (selectState == SelectionState.GraphSelect)
         {
-            Font textFont = new(Font.Name, 8, FontStyle.Bold);
             for (int i = 0; i < ables.Count; i++)
             {
                 if (ables[i].ShouldSelectGraphable(this, graphMousePos, 2.5))
@@ -234,6 +234,20 @@ public partial class GraphForm : Form
                     foreach (IGraphPart selPart in selectionParts) selPart.Render(this, g, graphPens[i]);
                 }
             }
+        }
+        else if (selectState == SelectionState.ZoomBox)
+        {
+            // Draw the current box selection.
+            Int2 boxPosA = GraphSpaceToScreenSpace(boxSelectA),
+                 boxPosB = GraphSpaceToScreenSpace(boxSelectB);
+
+            if (boxPosA.x > boxPosB.x) (boxPosA.x, boxPosB.x) = (boxPosB.x, boxPosA.x);
+            if (boxPosA.y > boxPosB.y) (boxPosA.y, boxPosB.y) = (boxPosB.y, boxPosA.y);
+
+            Pen boxPen = new(ZoomBoxColor, 2 * DpiFloat / 192);
+            g.DrawRectangle(boxPen, new(boxPosA.x, boxPosA.y,
+                                        boxPosB.x - boxPosA.x,
+                                        boxPosB.y - boxPosA.y));
         }
 
         base.OnPaint(e);
@@ -264,35 +278,52 @@ public partial class GraphForm : Form
                pixelPos.y >= 0 && pixelPos.y < ClientRectangle.Height;
     }
 
-    private bool mouseDrag = false;
+    private SelectionState selectState = SelectionState.None;
+    internal bool canBoxSelect;
+    private SetZoomForm? setZoomForm;
+
     private Int2 initialMouseLocation;
     private Float2 initialScreenCenter;
 
-    private bool ableDrag = false;
+    private Float2 boxSelectA, boxSelectB;
+
     protected override void OnMouseDown(MouseEventArgs e)
     {
-        if (!mouseDrag)
+        if (selectState == SelectionState.None && canBoxSelect)
+        {
+            Point clientMousePos = PointToClient(Cursor.Position);
+            Float2 graphMousePos = ScreenSpaceToGraphSpace(new(clientMousePos.X,
+                                                               clientMousePos.Y));
+
+            boxSelectA = graphMousePos;
+            boxSelectB = graphMousePos;
+
+            selectState = SelectionState.ZoomBox;
+        }
+
+        if (selectState == SelectionState.None)
         {
             Point clientMousePos = PointToClient(Cursor.Position);
             Float2 graphMousePos = ScreenSpaceToGraphSpace(new(clientMousePos.X,
                                                                clientMousePos.Y));
             foreach (Graphable able in Graphables)
             {
-                if (able.ShouldSelectGraphable(this, graphMousePos, 1)) ableDrag = true;
+                if (able.ShouldSelectGraphable(this, graphMousePos, 1))
+                    selectState = SelectionState.GraphSelect;
             }
-            if (ableDrag) Invalidate(false);
+            if (selectState == SelectionState.GraphSelect) Invalidate(false);
         }
 
-        if (!ableDrag)
+        if (selectState == SelectionState.None)
         {
-            mouseDrag = true;
+            selectState = SelectionState.ViewportDrag;
             initialMouseLocation = new Int2(Cursor.Position.X, Cursor.Position.Y);
             initialScreenCenter = ScreenCenter;
         }
     }
     protected override void OnMouseUp(MouseEventArgs e)
     {
-        if (mouseDrag)
+        if (selectState == SelectionState.ViewportDrag)
         {
             Int2 pixelDiff = new(initialMouseLocation.x - Cursor.Position.X,
                              initialMouseLocation.y - Cursor.Position.Y);
@@ -300,22 +331,52 @@ public partial class GraphForm : Form
             ScreenCenter = new(initialScreenCenter.x + graphDiff.x,
                                initialScreenCenter.y + graphDiff.y);
         }
-        mouseDrag = false;
-        ableDrag = false;
+        else if (selectState == SelectionState.ZoomBox)
+        {
+            Point clientMousePos = PointToClient(Cursor.Position);
+            Float2 graphMousePos = ScreenSpaceToGraphSpace(new(clientMousePos.X,
+                                                               clientMousePos.Y));
+            boxSelectB = graphMousePos;
+
+            // Set center.
+            ScreenCenter = new((boxSelectA.x + boxSelectB.x) * 0.5,
+                              -(boxSelectA.y + boxSelectB.y) * 0.5);
+
+            // Set zoom. Kind of weird but it works.
+            Float2 minGraph = MinVisibleGraph, maxGraph = MaxVisibleGraph;
+            Float2 oldDist = new(maxGraph.x - minGraph.x,
+                                 maxGraph.y - minGraph.y);
+            Float2 newDist = new(Math.Abs(boxSelectB.x - boxSelectA.x),
+                                 Math.Abs(boxSelectB.y - boxSelectA.y));
+            ZoomLevel = new(ZoomLevel.x * newDist.x / oldDist.x,
+                            ZoomLevel.y * newDist.y / oldDist.y);
+
+            setZoomForm!.CompleteBoxSelection();
+
+            boxSelectA = new(0, 0);
+            boxSelectB = new(0, 0);
+        }
+        selectState = SelectionState.None;
         Invalidate(false);
     }
     protected override void OnMouseMove(MouseEventArgs e)
     {
-        if (mouseDrag)
+        if (selectState == SelectionState.ViewportDrag)
         {
             Int2 pixelDiff = new(initialMouseLocation.x - Cursor.Position.X,
                              initialMouseLocation.y - Cursor.Position.Y);
             Float2 graphDiff = new(pixelDiff.x * ZoomLevel.x / Dpi.x, pixelDiff.y * ZoomLevel.y / Dpi.y);
             ScreenCenter = new(initialScreenCenter.x + graphDiff.x,
                                initialScreenCenter.y + graphDiff.y);
-            Invalidate(false);
         }
-        else if (ableDrag) Invalidate(false);
+        else if (selectState == SelectionState.ZoomBox)
+        {
+            Point clientMousePos = PointToClient(Cursor.Position);
+            Float2 graphMousePos = ScreenSpaceToGraphSpace(new(clientMousePos.X,
+                                                               clientMousePos.Y));
+            boxSelectB = graphMousePos;
+        }
+        Invalidate(false);
     }
     protected override void OnMouseWheel(MouseEventArgs e)
     {
@@ -445,7 +506,31 @@ public partial class GraphForm : Form
 
     private void ButtonViewportSetZoom_Click(object? sender, EventArgs e)
     {
-        MessageBox.Show("TODO", "Set Viewport Zoom", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        if (setZoomForm is not null)
+        {
+            setZoomForm.Focus();
+            return;
+        }
+
+        SetZoomForm zoomForm = new(this)
+        {
+            StartPosition = FormStartPosition.Manual,
+        };
+        zoomForm.Location = new Point(Location.X + ClientRectangle.Width + 10,
+                                    Location.Y + (ClientRectangle.Height - zoomForm.ClientRectangle.Height) / 2);
+
+        if (zoomForm.Location.X + zoomForm.Width > Screen.FromControl(this).WorkingArea.Width)
+        {
+            zoomForm.StartPosition = FormStartPosition.WindowsDefaultLocation;
+        }
+
+        setZoomForm = zoomForm;
+        zoomForm.Show();
+        zoomForm.FormClosing += (o, e) =>
+        {
+            zoomForm.CompleteBoxSelection();
+            setZoomForm = null;
+        };
     }
     private void ButtonViewportSetCenter_Click(object? sender, EventArgs e)
     {
@@ -464,12 +549,20 @@ public partial class GraphForm : Form
         WindowState = FormWindowState.Normal;
     }
 
+    private ViewCacheForm? cacheForm;
     private void MenuMiscCaches_Click(object? sender, EventArgs e)
     {
+        if (this.cacheForm is not null)
+        {
+            this.cacheForm.Focus();
+            return;
+        }
+
         ViewCacheForm cacheForm = new(this)
         {
             StartPosition = FormStartPosition.Manual
         };
+        this.cacheForm = cacheForm;
 
         cacheForm.Location = new Point(Location.X + ClientRectangle.Width + 10,
                                        Location.Y + (ClientRectangle.Height - cacheForm.ClientRectangle.Height) / 2);
@@ -593,5 +686,13 @@ public partial class GraphForm : Form
         {
             Console.WriteLine($"Failed to check for updates:\n{ex}");
         }
+    }
+
+    private enum SelectionState
+    {
+        None = 0,
+        ViewportDrag,
+        GraphSelect,
+        ZoomBox,
     }
 }
