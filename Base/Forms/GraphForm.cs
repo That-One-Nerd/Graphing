@@ -35,6 +35,8 @@ public partial class GraphForm : Form
         {
             _zoomLevel = new(Math.Clamp(value.x, 1e-5, 1e3),
                              Math.Clamp(value.y, 1e-5, 1e3));
+            OnZoomLevelChanged(this, new());
+            Invalidate(false);
         }
     }
     private Float2 _zoomLevel;
@@ -48,6 +50,8 @@ public partial class GraphForm : Form
     public Float2 MaxVisibleGraph => ScreenSpaceToGraphSpace(new Int2(ClientRectangle.Width, 0));
 
     private readonly List<Graphable> ables;
+
+    public event EventHandler OnZoomLevelChanged = delegate { };
 
     public GraphForm(string title)
     {
@@ -390,9 +394,7 @@ public partial class GraphForm : Form
 
     private void ResetViewportButton_Click(object? sender, EventArgs e)
     {
-        ScreenCenter = new Float2(0, 0);
-        ZoomLevel = new(1, 1);
-        Invalidate(false);
+        ResetAllViewport();
     }
     private void GraphColorPickerButton_Click(Graphable able)
     {
@@ -547,6 +549,16 @@ public partial class GraphForm : Form
         Location = initialWindowPos;
         Size = initialWindowSize;
         WindowState = FormWindowState.Normal;
+    }
+
+    public void ResetAllViewport()
+    {
+        ScreenCenter = new Float2(0, 0);
+        ZoomLevel = new(1, 1);
+        Location = initialWindowPos;
+        Size = initialWindowSize;
+        WindowState = FormWindowState.Normal;
+        Invalidate(false);
     }
 
     private ViewCacheForm? cacheForm;
