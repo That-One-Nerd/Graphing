@@ -14,7 +14,8 @@ public partial class SetZoomForm : Form
         InitializeComponent();
         this.refForm = refForm;
 
-        refForm.OnZoomLevelChanged += (o, e) => RedeclareValues();
+        refForm.Paint += (o, e) => RedeclareValues();
+        RedeclareValues();
     }
 
     private void EnableBoxSelect_Click(object? sender, EventArgs e)
@@ -54,6 +55,11 @@ public partial class SetZoomForm : Form
 
         refForm.Width = newWidth;
     }
+    private void NormalizeButton_Click(object? sender, EventArgs e)
+    {
+        double factor = 1 / Math.Min(refForm.ZoomLevel.x, refForm.ZoomLevel.y);
+        refForm.ZoomLevel = new(factor * refForm.ZoomLevel.x, factor * refForm.ZoomLevel.y);
+    }
     private void ResetButton_Click(object? sender, EventArgs e)
     {
         refForm.ResetAllViewport();
@@ -61,7 +67,25 @@ public partial class SetZoomForm : Form
 
     private void RedeclareValues()
     {
-        Invalidate(false);
+        bool enabled = !refForm.ViewportLocked;
+
+        Float2 minGraph = refForm.MinVisibleGraph,
+               maxGraph = refForm.MaxVisibleGraph;
+
+        MinBoxX.Text = $"{minGraph.x:0.000}";
+        MaxBoxX.Text = $"{maxGraph.x:0.000}";
+        MinBoxY.Text = $"{minGraph.y:0.000}";
+        MaxBoxY.Text = $"{maxGraph.y:0.000}";
+
+        ViewportLock.Checked = !enabled;
+        EnableBoxSelect.Enabled = enabled;
+        MatchAspectButton.Enabled = enabled;
+        NormalizeButton.Enabled = enabled;
+        ResetButton.Enabled = enabled;
+        MinBoxX.Enabled = enabled;
+        MaxBoxX.Enabled = enabled;
+        MinBoxY.Enabled = enabled;
+        MaxBoxY.Enabled = enabled;
     }
 
     internal void CompleteBoxSelection()
@@ -69,9 +93,9 @@ public partial class SetZoomForm : Form
         if (boxSelectEnabled) EnableBoxSelect_Click(null, new());
     }
 
-    private void NormalizeButton_Click(object sender, EventArgs e)
+    private void ViewportLock_CheckedChanged(object? sender, EventArgs e)
     {
-        double factor = 1 / Math.Min(refForm.ZoomLevel.x, refForm.ZoomLevel.y);
-        refForm.ZoomLevel = new(factor * refForm.ZoomLevel.x, factor * refForm.ZoomLevel.y);
+        refForm.ViewportLocked = ViewportLock.Checked;
+        RedeclareValues();
     }
 }

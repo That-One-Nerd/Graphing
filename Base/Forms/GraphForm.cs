@@ -41,6 +41,29 @@ public partial class GraphForm : Form
     }
     private Float2 _zoomLevel;
 
+    public bool ViewportLocked
+    {
+        get => _viewportLocked;
+        set
+        {
+            if (value)
+            {
+                FormBorderStyle = FormBorderStyle.FixedSingle;
+                ResetViewportButton.Text = "🔒";
+            }
+            else
+            {
+                FormBorderStyle = FormBorderStyle.Sizable;
+                ResetViewportButton.Text = "🏠";
+            }
+            MaximizeBox = !value;
+            ResetViewportButton.Enabled = !value;
+
+            _viewportLocked = value;
+        }
+    }
+    private bool _viewportLocked;
+
     private readonly Point initialWindowPos;
     private readonly Size initialWindowSize;
 
@@ -318,7 +341,7 @@ public partial class GraphForm : Form
             if (selectState == SelectionState.GraphSelect) Invalidate(false);
         }
 
-        if (selectState == SelectionState.None)
+        if (selectState == SelectionState.None && !ViewportLocked)
         {
             selectState = SelectionState.ViewportDrag;
             initialMouseLocation = new Int2(Cursor.Position.X, Cursor.Position.Y);
@@ -327,7 +350,8 @@ public partial class GraphForm : Form
     }
     protected override void OnMouseUp(MouseEventArgs e)
     {
-        if (selectState == SelectionState.ViewportDrag)
+        if (selectState == SelectionState.None) return;
+        else if (selectState == SelectionState.ViewportDrag)
         {
             Int2 pixelDiff = new(initialMouseLocation.x - Cursor.Position.X,
                              initialMouseLocation.y - Cursor.Position.Y);
@@ -365,7 +389,8 @@ public partial class GraphForm : Form
     }
     protected override void OnMouseMove(MouseEventArgs e)
     {
-        if (selectState == SelectionState.ViewportDrag)
+        if (selectState == SelectionState.None) return;
+        else if (selectState == SelectionState.ViewportDrag)
         {
             Int2 pixelDiff = new(initialMouseLocation.x - Cursor.Position.X,
                              initialMouseLocation.y - Cursor.Position.Y);
@@ -384,6 +409,8 @@ public partial class GraphForm : Form
     }
     protected override void OnMouseWheel(MouseEventArgs e)
     {
+        if (ViewportLocked) return;
+
         Float2 newZoom = ZoomLevel;
         newZoom.x *= 1 - e.Delta * 0.00075; // Zoom factor.
         newZoom.y *= 1 - e.Delta * 0.00075;

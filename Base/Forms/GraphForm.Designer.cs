@@ -47,23 +47,22 @@ namespace Graphing.Forms
             MenuOperationsTranslate = new ToolStripMenuItem();
             MenuConvert = new ToolStripMenuItem();
             MenuConvertEquation = new ToolStripMenuItem();
+            MenuConvertSlopeField = new ToolStripMenuItem();
             MenuMisc = new ToolStripMenuItem();
             MenuMiscCaches = new ToolStripMenuItem();
             MiscMenuPreload = new ToolStripMenuItem();
-            MenuConvertSlopeField = new ToolStripMenuItem();
             GraphMenu.SuspendLayout();
             SuspendLayout();
             // 
             // ResetViewportButton
             // 
             ResetViewportButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            ResetViewportButton.Font = new Font("Segoe UI Emoji", 13.875F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            ResetViewportButton.Font = new Font("Segoe UI Emoji", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             ResetViewportButton.Location = new Point(1373, 43);
             ResetViewportButton.Name = "ResetViewportButton";
             ResetViewportButton.Size = new Size(64, 64);
             ResetViewportButton.TabIndex = 0;
-            ResetViewportButton.Text = "⌂";
-            ResetViewportButton.TextAlign = ContentAlignment.TopRight;
+            ResetViewportButton.Text = "🏠";
             ResetViewportButton.UseVisualStyleBackColor = true;
             ResetViewportButton.Click += ResetViewportButton_Click;
             // 
@@ -73,7 +72,7 @@ namespace Graphing.Forms
             GraphMenu.Items.AddRange(new ToolStripItem[] { MenuViewport, MenuElements, MenuOperations, MenuConvert, MenuMisc });
             GraphMenu.Location = new Point(0, 0);
             GraphMenu.Name = "GraphMenu";
-            GraphMenu.Size = new Size(1449, 42);
+            GraphMenu.Size = new Size(1449, 40);
             GraphMenu.TabIndex = 1;
             GraphMenu.Text = "menuStrip1";
             // 
@@ -81,7 +80,7 @@ namespace Graphing.Forms
             // 
             MenuViewport.DropDownItems.AddRange(new ToolStripItem[] { ButtonViewportSetZoom, ButtonViewportSetCenter, ButtonViewportReset, ButtonViewportResetWindow });
             MenuViewport.Name = "MenuViewport";
-            MenuViewport.Size = new Size(129, 38);
+            MenuViewport.Size = new Size(129, 36);
             MenuViewport.Text = "Viewport";
             // 
             // ButtonViewportSetZoom
@@ -116,7 +115,7 @@ namespace Graphing.Forms
             // 
             MenuElements.DropDownItems.AddRange(new ToolStripItem[] { MenuElementsColors, MenuElementsRemove });
             MenuElements.Name = "MenuElements";
-            MenuElements.Size = new Size(131, 38);
+            MenuElements.Size = new Size(131, 36);
             MenuElements.Text = "Elements";
             // 
             // MenuElementsColors
@@ -135,7 +134,7 @@ namespace Graphing.Forms
             // 
             MenuOperations.DropDownItems.AddRange(new ToolStripItem[] { MenuOperationsDerivative, MenuOperationsIntegral, MenuOperationsTranslate });
             MenuOperations.Name = "MenuOperations";
-            MenuOperations.Size = new Size(151, 38);
+            MenuOperations.Size = new Size(151, 36);
             MenuOperations.Text = "Operations";
             // 
             // MenuOperationsDerivative
@@ -160,20 +159,26 @@ namespace Graphing.Forms
             // 
             MenuConvert.DropDownItems.AddRange(new ToolStripItem[] { MenuConvertEquation, MenuConvertSlopeField });
             MenuConvert.Name = "MenuConvert";
-            MenuConvert.Size = new Size(118, 38);
+            MenuConvert.Size = new Size(118, 36);
             MenuConvert.Text = "Convert";
             // 
             // MenuConvertEquation
             // 
             MenuConvertEquation.Name = "MenuConvertEquation";
-            MenuConvertEquation.Size = new Size(359, 44);
+            MenuConvertEquation.Size = new Size(297, 44);
             MenuConvertEquation.Text = "To Equation";
+            // 
+            // MenuConvertSlopeField
+            // 
+            MenuConvertSlopeField.Name = "MenuConvertSlopeField";
+            MenuConvertSlopeField.Size = new Size(297, 44);
+            MenuConvertSlopeField.Text = "To Slope Field";
             // 
             // MenuMisc
             // 
             MenuMisc.DropDownItems.AddRange(new ToolStripItem[] { MenuMiscCaches, MiscMenuPreload });
             MenuMisc.Name = "MenuMisc";
-            MenuMisc.Size = new Size(83, 38);
+            MenuMisc.Size = new Size(83, 36);
             MenuMisc.Text = "Misc";
             // 
             // MenuMiscCaches
@@ -189,12 +194,6 @@ namespace Graphing.Forms
             MiscMenuPreload.Size = new Size(299, 44);
             MiscMenuPreload.Text = "Preload Cache";
             MiscMenuPreload.Click += MiscMenuPreload_Click;
-            // 
-            // MenuConvertSlopeField
-            // 
-            MenuConvertSlopeField.Name = "MenuConvertSlopeField";
-            MenuConvertSlopeField.Size = new Size(359, 44);
-            MenuConvertSlopeField.Text = "To Slope Field";
             // 
             // GraphForm
             // 
