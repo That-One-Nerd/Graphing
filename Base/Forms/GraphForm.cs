@@ -23,7 +23,7 @@ public partial class GraphForm : Form
     public static readonly Color UnitsTextColor = Color.Black;
     public static readonly Color ZoomBoxColor = Color.Black;
 
-    public Float2 ScreenCenter { get; private set; }
+    public Float2 ScreenCenter { get; set; }
     public Float2 Dpi { get; private set; }
 
     public float DpiFloat { get; private set; }
