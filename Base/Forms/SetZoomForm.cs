@@ -98,6 +98,17 @@ public partial class SetZoomForm : Form
         {
             Float2 min = refForm.MinVisibleGraph, max = refForm.MaxVisibleGraph;
 
+            if (minX > max.x)
+            {
+                MaxBoxX.Text = MinBoxX.Text;
+                MaxBoxX_Finish(sender, e);
+                minX = max.x;
+
+                // Redefine bounds.
+                min = refForm.MinVisibleGraph;
+                max = refForm.MaxVisibleGraph;
+            }
+
             double newCenterX = (minX + max.x) / 2,
                    zoomFactorX = (max.x - minX) / (max.x - min.x);
 
@@ -112,6 +123,17 @@ public partial class SetZoomForm : Form
         if (double.TryParse(MaxBoxX.Text, out double maxX))
         {
             Float2 min = refForm.MinVisibleGraph, max = refForm.MaxVisibleGraph;
+
+            if (maxX < min.x)
+            {
+                MinBoxX.Text = MaxBoxX.Text;
+                MinBoxX_Finish(sender, e);
+                maxX = min.x;
+
+                // Redefine bounds.
+                min = refForm.MinVisibleGraph;
+                max = refForm.MaxVisibleGraph;
+            }
 
             double newCenterX = (min.x + maxX) / 2,
                    zoomFactorX = (maxX - min.x) / (max.x - min.x);
@@ -128,6 +150,17 @@ public partial class SetZoomForm : Form
         {
             Float2 min = refForm.MinVisibleGraph, max = refForm.MaxVisibleGraph;
 
+            if (minY > max.y)
+            {
+                MaxBoxY.Text = MinBoxY.Text;
+                MaxBoxY_Finish(sender, e);
+                minY = max.y;
+
+                // Redefine bounds.
+                min = refForm.MinVisibleGraph;
+                max = refForm.MaxVisibleGraph;
+            }
+
             double newCenterY = -(minY + max.y) / 2, // Keeping it positive flips it for some reason ???
                    zoomFactorY = (max.y - minY) / (max.y - min.y);
 
@@ -142,6 +175,17 @@ public partial class SetZoomForm : Form
         if (double.TryParse(MaxBoxY.Text, out double maxY))
         {
             Float2 min = refForm.MinVisibleGraph, max = refForm.MaxVisibleGraph;
+
+            if (maxY < min.y)
+            {
+                MinBoxY.Text = MaxBoxY.Text;
+                MinBoxY_Finish(sender, e);
+                maxY = min.y;
+
+                // Redefine bounds.
+                min = refForm.MinVisibleGraph;
+                max = refForm.MaxVisibleGraph;
+            }
 
             double newCenterY = -(min.y + maxY) / 2, // Keeping it positive flips it for some reason ???
                    zoomFactorY = (maxY - min.y) / (max.y - min.y);
