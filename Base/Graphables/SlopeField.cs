@@ -11,11 +11,11 @@ public class SlopeField : Graphable
     private static int slopeFieldNum;
 
     protected readonly SlopeFieldsDelegate equ;
-    protected readonly int detail;
+    protected readonly double detail;
 
     protected readonly List<(Float2, GraphLine)> cache;
 
-    public SlopeField(int detail, SlopeFieldsDelegate equ)
+    public SlopeField(double detail, SlopeFieldsDelegate equ)
     {
         slopeFieldNum++;
         Name = $"Slope Field {slopeFieldNum}";
@@ -27,12 +27,18 @@ public class SlopeField : Graphable
 
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
     {
-        double epsilon = 1 / (detail * 2.0);
+        double step = 1 / detail;
+        double epsilon = step * 0.5;
         List<IGraphPart> lines = [];
 
-        for (double x = Math.Ceiling(graph.MinVisibleGraph.x - 1); x < graph.MaxVisibleGraph.x + 1; x += 1.0 / detail)
+        double minX = Math.Round((graph.MinVisibleGraph.x - 1) / step) * step,
+               maxX = Math.Round((graph.MaxVisibleGraph.x + 1) / step) * step,
+               minY = Math.Round((graph.MinVisibleGraph.y - 1) / step) * step,
+               maxY = Math.Round((graph.MaxVisibleGraph.y + 1) / step) * step;
+
+        for (double x = minX; x < maxX; x += step)
         {
-            for (double y = Math.Ceiling(graph.MinVisibleGraph.y - 1); y < graph.MaxVisibleGraph.y + 1; y += 1.0 / detail)
+            for (double y = minY; y < maxY; y += step)
             {
                 lines.Add(GetFromCache(epsilon, x, y));
             }
