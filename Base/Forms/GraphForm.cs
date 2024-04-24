@@ -1,8 +1,7 @@
 ﻿using Graphing.Abstract;
-using Graphing.Helpers;
-using Graphing.Parts;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
@@ -18,12 +17,15 @@ public partial class GraphForm : Form
 {
     public static readonly Color BackgroundColor = Color.White;
     public static readonly Color MainAxisColor = Color.Black;
-    public static readonly Color SemiAxisColor = Color.FromArgb(unchecked((int)0xFF_999999));
-    public static readonly Color QuarterAxisColor = Color.FromArgb(unchecked((int)0xFF_E0E0E0));
+    public static readonly Color SemiAxisColor = Color.FromArgb(unchecked((int)0xFF_999999));    // Grayish
+    public static readonly Color QuarterAxisColor = Color.FromArgb(unchecked((int)0xFF_E0E0E0)); // Lighter grayish
     public static readonly Color UnitsTextColor = Color.Black;
     public static readonly Color ZoomBoxColor = Color.Black;
 
-    public Float2 ScreenCenter { get; private set; }
+    public static readonly Color MajorUpdateColor = Color.FromArgb(unchecked((int)0xFF_F74434)); // Red
+    public static readonly Color MinorUpdateColor = Color.FromArgb(unchecked((int)0xFF_FCA103)); // Orange
+
+    public Float2 ScreenCenter { get; set; }
     public Float2 Dpi { get; private set; }
 
     public float DpiFloat { get; private set; }
@@ -630,6 +632,10 @@ public partial class GraphForm : Form
         foreach (Graphable able in Graphables) able.Preload(xRange, yRange, step);
         Invalidate(false);
     }
+    private void UpdaterPopupCloseButton_Click(object? sender, EventArgs e)
+    {
+        UpdaterPopup.Dispose();
+    }
 
     private void ElementsOperationsTranslate_Click(Graphable ableRaw, ITranslatable ableTrans)
     {
@@ -646,7 +652,7 @@ public partial class GraphForm : Form
         shifter.Show();
     }
 
-    private static async void RunUpdateChecker()
+    private async void RunUpdateChecker()
     {
         try
         {
@@ -669,56 +675,39 @@ public partial class GraphForm : Form
 
             if (newVersion > curVersion)
             {
-                // Updates are required.
-                DialogResult button = MessageBox.Show(
-                    $"A new update is available!\n{curVersion} -> {newVersion}\nWould you like to download the update?",
-                    "Graphing Calculator Update", MessageBoxButtons.YesNo);
+                string type;
 
-                if (button == DialogResult.No) return;
-
-                string? project = UpdaterHelper.GetProjectPath();
-                if (project is null)
+                if (newVersion.Major > curVersion.Major || // x.0.0
+                    newVersion.Minor > curVersion.Minor)   // 0.x.0
                 {
-                    MessageBox.Show("Cannot find project root. You'll likely have to update manually.",
-                                    "Error running automatic updates.", MessageBoxButtons.OK,
-                                    MessageBoxIcon.Error);
-                    return;
+                    type = "major";
+                    UpdaterPopupMessage.ForeColor = MajorUpdateColor;
+                }
+                else                                       // 0.0.x
+                {
+                    type = "minor";
+                    UpdaterPopupMessage.ForeColor = MinorUpdateColor;
                 }
 
-                if (await UpdaterHelper.UsingNugetPackage(project))
+                UpdaterPopupMessage.Text = $"A {type} update is available!\n{curVersion} → {newVersion}";
+                UpdaterPopup.Visible = true;
+
+                string url = latest["html_url"]!.GetValue<string>();
+                Console.WriteLine($"An update is available! {curVersion} -> {newVersion}\n{url}");
+                UpdaterPopupDownloadButton.Click += (o, e) =>
                 {
-                    Console.WriteLine($"Attempting to update via the NuGet Package Manager.");
-                    bool status = await UpdaterHelper.UpdateProjectByNuget(latest["tag_name"]!.GetValue<string>(), project);
-                    if (!status)
+                    ProcessStartInfo website = new()
                     {
-                        MessageBox.Show("Failed to update with the NuGet Package Manager. " +
-                                        "You'll likely have to update manually.",
-                                        "Error running automatic updates.", MessageBoxButtons.OK,
-                                        MessageBoxIcon.Error);
-                        return;
-                    }
-                }
-                else
-                {
-                    Console.WriteLine($"Attempting to update via a GitHub asset download.");
-                    bool status = await UpdaterHelper.UpdateProjectByGitHub(latest["tag_name"]!.GetValue<string>(), project);
-                    if (status)
-                    {
-                        MessageBox.Show("Update ready. Restart the project to complete the update.");
-                    }
-                    else
-                    {
-                        MessageBox.Show("Failed to update with an automatic download. " +
-                                        "You'll likely have to update manually.",
-                                        "Error running automatic updates.", MessageBoxButtons.OK,
-                                        MessageBoxIcon.Error);
-                        return;
-                    }
-                }
+                        FileName = url,
+                        UseShellExecute = true
+                    };
+                    Process.Start(website);
+                };
             }
             else
             {
-                Console.WriteLine($"Up-to-date.");
+                Console.WriteLine("Up-to-date.");
+                UpdaterPopup.Dispose();
             }
         }
         catch (Exception ex)
