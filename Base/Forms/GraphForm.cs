@@ -1,4 +1,5 @@
 ﻿using Graphing.Abstract;
+using Graphing.Graphables;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -444,9 +445,38 @@ public partial class GraphForm : Form
         RegenerateMenuItems();
     }
 
+    private readonly Dictionary<SlopeField, SlopeFieldDetailForm> sfDetailForms = [];
+    private void ChangeSlopeFieldDetail(SlopeField sf)
+    {
+        if (sfDetailForms.TryGetValue(sf, out SlopeFieldDetailForm? preexistingForm))
+        {
+            preexistingForm.Focus();
+            return;
+        }
+
+        SlopeFieldDetailForm detailForm = new(this, sf)
+        {
+            StartPosition = FormStartPosition.Manual
+        };
+        sfDetailForms.Add(sf, detailForm);
+
+        detailForm.Location = new Point(Location.X + ClientRectangle.Width + 10,
+                                        Location.Y + (ClientRectangle.Height - detailForm.ClientRectangle.Height) / 2);
+
+        if (detailForm.Location.X + detailForm.Width > Screen.FromControl(this).WorkingArea.Width)
+        {
+            detailForm.StartPosition = FormStartPosition.WindowsDefaultLocation;
+        }
+        detailForm.TopMost = true;
+        detailForm.Show();
+
+        detailForm.FormClosed += (o, e) => sfDetailForms.Remove(sf);
+    }
+
     private void RegenerateMenuItems()
     {
         MenuElementsColors.DropDownItems.Clear();
+        MenuElementsDetail.DropDownItems.Clear();
         MenuElementsRemove.DropDownItems.Clear();
         MenuOperationsDerivative.DropDownItems.Clear();
         MenuOperationsIntegral.DropDownItems.Clear();
@@ -473,6 +503,17 @@ public partial class GraphForm : Form
             };
             removeItem.Click += (o, e) => Ungraph(able);
             MenuElementsRemove.DropDownItems.Add(removeItem);
+
+            if (able is SlopeField sf)
+            {
+                ToolStripMenuItem sfDetailItem = new()
+                {
+                    ForeColor = able.Color,
+                    Text = able.Name
+                };
+                sfDetailItem.Click += (o, e) => ChangeSlopeFieldDetail(sf);
+                MenuElementsDetail.DropDownItems.Add(sfDetailItem);
+            }
 
             if (able is IDerivable derivable)
             {

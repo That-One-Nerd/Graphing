@@ -10,9 +10,24 @@ public class SlopeField : Graphable
 {
     private static int slopeFieldNum;
 
-    protected readonly SlopeFieldsDelegate equ;
-    protected readonly double detail;
+    public double Detail
+    {
+        get => _detail;
+        set
+        {
+            if (Math.Abs(value - Detail) >= 1e-4)
+            {
+                // When changing detail, we need to regenerate all
+                // the lines. Inefficient, I know. Might be optimized
+                // in a future update.
+                EraseCache();
+            }
+            _detail = value;
+        }
+    }
+    private double _detail;
 
+    protected readonly SlopeFieldsDelegate equ;
     protected readonly List<(Float2, GraphLine)> cache;
 
     public SlopeField(double detail, SlopeFieldsDelegate equ)
@@ -21,13 +36,13 @@ public class SlopeField : Graphable
         Name = $"Slope Field {slopeFieldNum}";
 
         this.equ = equ;
-        this.detail = detail;
+        _detail = detail;
         cache = [];
     }
 
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
     {
-        double step = 1 / detail;
+        double step = 1 / _detail;
         double epsilon = step * 0.5;
         List<IGraphPart> lines = [];
 
@@ -49,7 +64,7 @@ public class SlopeField : Graphable
 
     protected GraphLine MakeSlopeLine(Float2 position, double slope)
     {
-        double size = detail;
+        double size = _detail;
 
         double dirX = size, dirY = slope * size;
         double magnitude = Math.Sqrt(dirX * dirX + dirY * dirY);
@@ -79,17 +94,17 @@ public class SlopeField : Graphable
         return result;
     }
 
-    public override Graphable ShallowCopy() => new SlopeField(detail, equ);
+    public override Graphable ShallowCopy() => new SlopeField(_detail, equ);
 
     public override void EraseCache() => cache.Clear();
     public override long GetCacheBytes() => cache.Count * 48;
     
     public override bool ShouldSelectGraphable(in GraphForm graph, Float2 graphMousePos, double factor)
     {
-        Float2 nearestPos = new(Math.Round(graphMousePos.x * detail) / detail,
-                                Math.Round(graphMousePos.y * detail) / detail);
+        Float2 nearestPos = new(Math.Round(graphMousePos.x * _detail) / _detail,
+                                Math.Round(graphMousePos.y * _detail) / _detail);
 
-        double epsilon = 1 / (detail * 2.0);
+        double epsilon = 1 / (_detail * 2.0);
         GraphLine line = GetFromCache(epsilon, nearestPos.x, nearestPos.y);
         double slope = (line.b.y - line.a.y) / (line.b.x - line.a.x);
 
@@ -110,10 +125,10 @@ public class SlopeField : Graphable
     }
     public override IEnumerable<IGraphPart> GetSelectionItemsToRender(in GraphForm graph, Float2 graphMousePos)
     {
-        Float2 nearestPos = new(Math.Round(graphMousePos.x * detail) / detail,
-                                Math.Round(graphMousePos.y * detail) / detail);
+        Float2 nearestPos = new(Math.Round(graphMousePos.x * _detail) / _detail,
+                                Math.Round(graphMousePos.y * _detail) / _detail);
 
-        double epsilon = 1 / (detail * 2.0);
+        double epsilon = 1 / (_detail * 2.0);
         GraphLine line = GetFromCache(epsilon, nearestPos.x, nearestPos.y);
         double slope = (line.b.y - line.a.y) / (line.b.x - line.a.x);
 
@@ -130,9 +145,9 @@ public class SlopeField : Graphable
 
     public override void Preload(Float2 xRange, Float2 yRange, double step)
     {
-        for (double x = Math.Ceiling(xRange.x - 1); x < xRange.y + 1; x += 1.0 / detail)
+        for (double x = Math.Ceiling(xRange.x - 1); x < xRange.y + 1; x += 1.0 / _detail)
         {
-            for (double y = Math.Ceiling(yRange.x - 1); y < yRange.y + 1; y += 1.0 / detail)
+            for (double y = Math.Ceiling(yRange.x - 1); y < yRange.y + 1; y += 1.0 / _detail)
             {
                 GetFromCache(step, x, y);
             }
