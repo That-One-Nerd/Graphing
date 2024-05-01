@@ -414,10 +414,19 @@ public partial class GraphForm : Form
     {
         if (ViewportLocked) return;
 
+        Point clientMousePos = PointToClient(Cursor.Position);
+        Int2 mousePos = new(clientMousePos.X, clientMousePos.Y);
+        Float2 mouseOver = ScreenSpaceToGraphSpace(mousePos);
+
         Float2 newZoom = ZoomLevel;
         newZoom.x *= 1 - e.Delta * 0.00075; // Zoom factor.
         newZoom.y *= 1 - e.Delta * 0.00075;
         ZoomLevel = newZoom;
+
+        // Keep the mouse as the zoom hotspot.
+        Float2 newOver = ScreenSpaceToGraphSpace(mousePos);
+        Float2 delta = new(newOver.x - mouseOver.x, newOver.y - mouseOver.y);
+        ScreenCenter = new(ScreenCenter.x - delta.x, ScreenCenter.y + delta.y);
 
         Invalidate(false);
     }
