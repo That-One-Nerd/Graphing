@@ -3,8 +3,9 @@
 This is a graphing calculator I made initially for a Calculus project in a day or so. I've written a basic rendering system in Windows Forms that runs on .NET 8.0.
 
 Currently, it doesn't have a whole lot of features, but I'll be adding more in the future. Here's currently what it can do:
-- Graph an equation (duh).
+- Graph standard equations (duh).
     - There are currently some rendering issues with asymptotes which will be focused on at some point.
+- Graph parametric equations.
 - Integrate and derive equations.
 - Graph a slope field of a `dy/dx =` style equation.
 - View a tangent line of an equation.

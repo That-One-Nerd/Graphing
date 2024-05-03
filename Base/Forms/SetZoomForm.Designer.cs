@@ -1,7 +1,4 @@
-﻿using System.Drawing;
-using System.Windows.Forms;
-
-namespace Graphing.Forms
+﻿namespace Graphing.Forms
 {
     partial class SetZoomForm
     {
@@ -31,90 +28,157 @@ namespace Graphing.Forms
         /// </summary>
         private void InitializeComponent()
         {
-            MessageLabel = new Label();
-            ZoomTrackBar = new TrackBar();
-            ValueLabel = new Label();
-            ZoomMinValue = new TextBox();
-            ZoomMaxValue = new TextBox();
-            ((System.ComponentModel.ISupportInitialize)ZoomTrackBar).BeginInit();
+            EnableBoxSelect = new System.Windows.Forms.Button();
+            MatchAspectButton = new System.Windows.Forms.Button();
+            ResetButton = new System.Windows.Forms.Button();
+            NormalizeButton = new System.Windows.Forms.Button();
+            MinBoxX = new System.Windows.Forms.TextBox();
+            TextX = new System.Windows.Forms.Label();
+            MaxBoxX = new System.Windows.Forms.TextBox();
+            MaxBoxY = new System.Windows.Forms.TextBox();
+            TextY = new System.Windows.Forms.Label();
+            MinBoxY = new System.Windows.Forms.TextBox();
+            ViewportLock = new System.Windows.Forms.CheckBox();
             SuspendLayout();
             // 
-            // MessageLabel
+            // EnableBoxSelect
             // 
-            MessageLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            MessageLabel.Location = new Point(52, 20);
-            MessageLabel.Name = "MessageLabel";
-            MessageLabel.Size = new Size(413, 35);
-            MessageLabel.TabIndex = 0;
-            MessageLabel.Text = "Set the zoom level for the graph.";
-            MessageLabel.TextAlign = ContentAlignment.MiddleCenter;
+            EnableBoxSelect.Location = new System.Drawing.Point(12, 12);
+            EnableBoxSelect.Name = "EnableBoxSelect";
+            EnableBoxSelect.Size = new System.Drawing.Size(187, 46);
+            EnableBoxSelect.TabIndex = 0;
+            EnableBoxSelect.Text = "Box Select";
+            EnableBoxSelect.UseVisualStyleBackColor = true;
+            EnableBoxSelect.Click += EnableBoxSelect_Click;
             // 
-            // ZoomTrackBar
+            // MatchAspectButton
             // 
-            ZoomTrackBar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            ZoomTrackBar.LargeChange = 1000;
-            ZoomTrackBar.Location = new Point(12, 127);
-            ZoomTrackBar.Maximum = 10000;
-            ZoomTrackBar.Name = "ZoomTrackBar";
-            ZoomTrackBar.Size = new Size(489, 90);
-            ZoomTrackBar.TabIndex = 1;
-            ZoomTrackBar.TickStyle = TickStyle.None;
-            ZoomTrackBar.Scroll += ZoomTrackBar_Scroll;
+            MatchAspectButton.Location = new System.Drawing.Point(12, 64);
+            MatchAspectButton.Name = "MatchAspectButton";
+            MatchAspectButton.Size = new System.Drawing.Size(187, 46);
+            MatchAspectButton.TabIndex = 1;
+            MatchAspectButton.Text = "Match Aspect";
+            MatchAspectButton.UseVisualStyleBackColor = true;
+            MatchAspectButton.Click += MatchAspectButton_Click;
             // 
-            // ValueLabel
+            // ResetButton
             // 
-            ValueLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            ValueLabel.Location = new Point(52, 91);
-            ValueLabel.Name = "ValueLabel";
-            ValueLabel.Size = new Size(413, 33);
-            ValueLabel.TabIndex = 2;
-            ValueLabel.Text = "1.00x";
-            ValueLabel.TextAlign = ContentAlignment.TopCenter;
+            ResetButton.Location = new System.Drawing.Point(12, 168);
+            ResetButton.Name = "ResetButton";
+            ResetButton.Size = new System.Drawing.Size(187, 46);
+            ResetButton.TabIndex = 2;
+            ResetButton.Text = "Reset";
+            ResetButton.UseVisualStyleBackColor = true;
+            ResetButton.Click += ResetButton_Click;
             // 
-            // ZoomMinValue
+            // NormalizeButton
             // 
-            ZoomMinValue.Location = new Point(12, 178);
-            ZoomMinValue.Name = "ZoomMinValue";
-            ZoomMinValue.Size = new Size(83, 39);
-            ZoomMinValue.TabIndex = 3;
-            ZoomMinValue.Text = "0.50";
-            ZoomMinValue.TextChanged += ZoomMinValue_TextChanged;
+            NormalizeButton.Location = new System.Drawing.Point(12, 116);
+            NormalizeButton.Name = "NormalizeButton";
+            NormalizeButton.Size = new System.Drawing.Size(187, 46);
+            NormalizeButton.TabIndex = 3;
+            NormalizeButton.Text = "Normalize";
+            NormalizeButton.UseVisualStyleBackColor = true;
+            NormalizeButton.Click += NormalizeButton_Click;
             // 
-            // ZoomMaxValue
+            // MinBoxX
             // 
-            ZoomMaxValue.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            ZoomMaxValue.Location = new Point(418, 178);
-            ZoomMaxValue.Name = "ZoomMaxValue";
-            ZoomMaxValue.Size = new Size(83, 39);
-            ZoomMaxValue.TabIndex = 4;
-            ZoomMaxValue.Text = "2.00";
-            ZoomMaxValue.TextAlign = HorizontalAlignment.Right;
-            ZoomMaxValue.TextChanged += ZoomMaxValue_TextChanged;
+            MinBoxX.Location = new System.Drawing.Point(227, 49);
+            MinBoxX.Margin = new System.Windows.Forms.Padding(25, 3, 0, 3);
+            MinBoxX.Name = "MinBoxX";
+            MinBoxX.Size = new System.Drawing.Size(108, 39);
+            MinBoxX.TabIndex = 4;
+            // 
+            // TextX
+            // 
+            TextX.Location = new System.Drawing.Point(335, 49);
+            TextX.Margin = new System.Windows.Forms.Padding(0);
+            TextX.Name = "TextX";
+            TextX.Size = new System.Drawing.Size(77, 39);
+            TextX.TabIndex = 5;
+            TextX.Text = "≤ x ≤";
+            TextX.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // MaxBoxX
+            // 
+            MaxBoxX.Location = new System.Drawing.Point(412, 49);
+            MaxBoxX.Margin = new System.Windows.Forms.Padding(0, 3, 25, 3);
+            MaxBoxX.Name = "MaxBoxX";
+            MaxBoxX.Size = new System.Drawing.Size(108, 39);
+            MaxBoxX.TabIndex = 6;
+            // 
+            // MaxBoxY
+            // 
+            MaxBoxY.Location = new System.Drawing.Point(412, 94);
+            MaxBoxY.Margin = new System.Windows.Forms.Padding(0, 3, 25, 3);
+            MaxBoxY.Name = "MaxBoxY";
+            MaxBoxY.Size = new System.Drawing.Size(108, 39);
+            MaxBoxY.TabIndex = 9;
+            // 
+            // TextY
+            // 
+            TextY.Location = new System.Drawing.Point(335, 94);
+            TextY.Margin = new System.Windows.Forms.Padding(0);
+            TextY.Name = "TextY";
+            TextY.Size = new System.Drawing.Size(77, 39);
+            TextY.TabIndex = 8;
+            TextY.Text = "≤ y ≤";
+            TextY.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // MinBoxY
+            // 
+            MinBoxY.Location = new System.Drawing.Point(227, 94);
+            MinBoxY.Margin = new System.Windows.Forms.Padding(25, 3, 0, 3);
+            MinBoxY.Name = "MinBoxY";
+            MinBoxY.Size = new System.Drawing.Size(108, 39);
+            MinBoxY.TabIndex = 7;
+            // 
+            // ViewportLock
+            // 
+            ViewportLock.Location = new System.Drawing.Point(227, 139);
+            ViewportLock.Name = "ViewportLock";
+            ViewportLock.Size = new System.Drawing.Size(293, 39);
+            ViewportLock.TabIndex = 10;
+            ViewportLock.Text = "Lock Viewport";
+            ViewportLock.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            ViewportLock.UseVisualStyleBackColor = true;
+            ViewportLock.CheckedChanged += ViewportLock_CheckedChanged;
             // 
             // SetZoomForm
             // 
-            AutoScaleDimensions = new SizeF(13F, 32F);
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(513, 230);
-            Controls.Add(ZoomMaxValue);
-            Controls.Add(ZoomMinValue);
-            Controls.Add(ValueLabel);
-            Controls.Add(ZoomTrackBar);
-            Controls.Add(MessageLabel);
-            FormBorderStyle = FormBorderStyle.FixedToolWindow;
+            AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(533, 227);
+            Controls.Add(ViewportLock);
+            Controls.Add(MaxBoxY);
+            Controls.Add(TextY);
+            Controls.Add(MinBoxY);
+            Controls.Add(MaxBoxX);
+            Controls.Add(TextX);
+            Controls.Add(MinBoxX);
+            Controls.Add(NormalizeButton);
+            Controls.Add(ResetButton);
+            Controls.Add(MatchAspectButton);
+            Controls.Add(EnableBoxSelect);
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             Name = "SetZoomForm";
-            Text = "Zoom Level";
-            ((System.ComponentModel.ISupportInitialize)ZoomTrackBar).EndInit();
+            Text = "Set Viewport Zoom";
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
 
-        private Label MessageLabel;
-        private TrackBar ZoomTrackBar;
-        private Label ValueLabel;
-        private TextBox ZoomMinValue;
-        private TextBox ZoomMaxValue;
+        private System.Windows.Forms.Button EnableBoxSelect;
+        private System.Windows.Forms.Button MatchAspectButton;
+        private System.Windows.Forms.Button ResetButton;
+        private System.Windows.Forms.Button NormalizeButton;
+        private System.Windows.Forms.TextBox MinBoxX;
+        private System.Windows.Forms.Label TextX;
+        private System.Windows.Forms.TextBox MaxBoxX;
+        private System.Windows.Forms.TextBox MaxBoxY;
+        private System.Windows.Forms.Label TextY;
+        private System.Windows.Forms.TextBox MinBoxY;
+        private System.Windows.Forms.CheckBox ViewportLock;
     }
 }

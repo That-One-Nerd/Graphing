@@ -1,12 +1,16 @@
-﻿using Graphing.Forms;
+﻿using Graphing.Abstract;
+using Graphing.Forms;
 using Graphing.Parts;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace Graphing.Graphables;
 
-public class TangentLine : Graphable
+public class TangentLine : Graphable, IConvertEquation, ITranslatableX
 {
+    public bool UngraphWhenConvertedToEquation => true;
+
     public double Position
     {
         get => _position;
@@ -18,8 +22,13 @@ public class TangentLine : Graphable
     }
     private double _position; // Private because it has exactly the same functionality as `Position`.
 
+    public double OffsetX
+    {
+        get => Position;
+        set => Position = value;
+    }
+
     protected readonly Equation parent;
-    protected readonly EquationDelegate parentEqu;
 
     protected readonly double length;
 
@@ -35,16 +44,26 @@ public class TangentLine : Graphable
         Name = $"Tangent Line of {parent.Name}";
 
         slopeCache = [];
-        parentEqu = parent.GetDelegate();
-        Position = position;
         this.length = length;
         this.parent = parent;
+        Position = position;
+
+        parent.OnInvalidate += (graph) =>
+        {
+            // I don't love this but it works.
+            EraseCache();
+            Position = _position; // Done for side effects.
+        };
     }
 
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
     {
         Float2 point = new(Position, currentSlope.y);
-        return [MakeSlopeLine(), new GraphUiCircle(point, 8)];
+        return
+        [
+            MakeSlopeLine(),
+            new GraphUiCircle(point)
+        ];
     }
     protected GraphLine MakeSlopeLine()
     {
@@ -63,13 +82,13 @@ public class TangentLine : Graphable
 
         const double step = 1e-3;
 
-        double initial = parentEqu(x);
-        Float2 result = new((parentEqu(x + step) - initial) / step, initial);
+        double initial = parent.GetValueAt(x);
+        Float2 result = new((parent.GetValueAt(x + step) - initial) / step, initial);
         slopeCache.Add(x, result);
         return result;
     }
 
-    public override Graphable DeepCopy() => new TangentLine(length, Position, parent);
+    public override Graphable ShallowCopy() => new TangentLine(length, Position, parent);
 
     public override void EraseCache() => slopeCache.Clear();
     public override long GetCacheBytes() => slopeCache.Count * 24;
@@ -93,7 +112,7 @@ public class TangentLine : Graphable
         double totalDist = Math.Sqrt(dist.x * dist.x + dist.y * dist.y);
         return totalDist <= allowedDist;
     }
-    public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos)
+    public override IEnumerable<IGraphPart> GetSelectionItemsToRender(in GraphForm graph, Float2 graphMousePos)
     {
         GraphLine line = MakeSlopeLine();
 
@@ -101,7 +120,15 @@ public class TangentLine : Graphable
                                   Math.Min(line.a.x, line.b.x),
                                   Math.Max(line.a.x, line.b.x)),
                lineY = currentSlope.x * (lineX - Position) + currentSlope.y;
-        return new Float2(lineX, lineY);
+
+        double slope = currentSlope.x;
+        Float2 point = new(lineX, lineY);
+
+        return
+        [
+            new GraphUiText($"M = {slope:0.000}", point, ContentAlignment.BottomLeft),
+            new GraphUiCircle(new(lineX, lineY))
+        ];
     }
 
     public override void Preload(Float2 xRange, Float2 yRange, double step)
@@ -111,5 +138,15 @@ public class TangentLine : Graphable
         // but may be used when the tangent line is moved. Not sure there's much
         // that can be changed.
         for (double x = xRange.x; x <= xRange.y; x += step) DerivativeAtPoint(x);
+    }
+
+    public Equation ToEquation()
+    {
+        double slope = currentSlope.x, x1 = Position, y1 = currentSlope.y;
+        return new(x => slope * (x - x1) + y1)
+        {
+            Name = Name,
+            Color = Color
+        };
     }
 }

@@ -5,118 +5,223 @@ namespace Graphing.Forms;
 
 public partial class SetZoomForm : Form
 {
-    private double minZoomRange;
-    private double maxZoomRange;
+    private readonly GraphForm refForm;
 
-    private double zoomLevel;
+    private bool boxSelectEnabled;
 
-    private readonly GraphForm form;
-
-    public SetZoomForm(GraphForm form)
+    public SetZoomForm(GraphForm refForm)
     {
         InitializeComponent();
+        this.refForm = refForm;
 
-        minZoomRange = 1 / (form.ZoomLevel * 2);
-        maxZoomRange = 2 / form.ZoomLevel;
-        zoomLevel = 1 / form.ZoomLevel;
+        refForm.Paint += (o, e) => RedeclareValues();
+        RedeclareValues();
 
-        ZoomTrackBar.Value = (int)(ZoomToFactor(zoomLevel) * (ZoomTrackBar.Maximum - ZoomTrackBar.Minimum) + ZoomTrackBar.Minimum);
-
-        this.form = form;
-    }
-
-    protected override void OnPaint(PaintEventArgs e)
-    {
-        ZoomMaxValue.Text = maxZoomRange.ToString("0.00");
-        ZoomMinValue.Text = minZoomRange.ToString("0.00");
-
-        ValueLabel.Text = $"{zoomLevel:0.00}x";
-
-        base.OnPaint(e);
-
-        form.ZoomLevel = 1 / zoomLevel;
-        form.Invalidate(false);
-    }
-
-    private double FactorToZoom(double factor)
-    {
-        return minZoomRange + (factor * factor) * (maxZoomRange - minZoomRange);
-    }
-    private double ZoomToFactor(double zoom)
-    {
-        double sqrValue = (zoom - minZoomRange) / (maxZoomRange - minZoomRange);
-        return Math.Sign(sqrValue) * Math.Sqrt(Math.Abs(sqrValue));
-    }
-
-    private void ZoomTrackBar_Scroll(object? sender, EventArgs e)
-    {
-        double factor = (ZoomTrackBar.Value - ZoomTrackBar.Minimum) / (double)(ZoomTrackBar.Maximum - ZoomTrackBar.Minimum);
-        zoomLevel = FactorToZoom(factor);
-
-        Invalidate(true);
-    }
-
-    private void ZoomMinValue_TextChanged(object? sender, EventArgs e)
-    {
-        double original = minZoomRange;
-        try
+        MinBoxX.Leave += MinBoxX_Finish;
+        MinBoxX.KeyDown += (o, e) =>
         {
-            double value;
-            if (string.IsNullOrWhiteSpace(ZoomMinValue.Text) ||
-                ZoomMinValue.Text.EndsWith('.'))
-            {
-                return;
-            }
-            else
-            {
-                value = double.Parse(ZoomMinValue.Text);
-                if (value < 1e-2 || value > 1e3 || value > maxZoomRange) throw new();
-            }
+            if (e.KeyCode == Keys.Enter) MinBoxX_Finish(o, e);
+        };
+        MaxBoxX.Leave += MaxBoxX_Finish;
+        MaxBoxX.KeyDown += (o, e) =>
+        {
+            if (e.KeyCode == Keys.Enter) MaxBoxX_Finish(o, e);
+        };
 
-            minZoomRange = value;
-            ZoomTrackBar.Value = (int)Math.Clamp(ZoomToFactor(zoomLevel) * (ZoomTrackBar.Maximum - ZoomTrackBar.Minimum) + ZoomTrackBar.Minimum, ZoomTrackBar.Minimum, ZoomTrackBar.Maximum);
-            double factor = (ZoomTrackBar.Value - ZoomTrackBar.Minimum) / (double)(ZoomTrackBar.Maximum - ZoomTrackBar.Minimum);
-            double newZoom = FactorToZoom(factor);
+        MinBoxY.Leave += MinBoxY_Finish;
+        MinBoxY.KeyDown += (o, e) =>
+        {
+            if (e.KeyCode == Keys.Enter) MinBoxY_Finish(o, e);
+        };
+        MaxBoxY.Leave += MaxBoxY_Finish;
+        MaxBoxY.KeyDown += (o, e) =>
+        {
+            if (e.KeyCode == Keys.Enter) MaxBoxY_Finish(o, e);
+        };
+    }
 
-            zoomLevel = newZoom;
-            if (newZoom != factor) Invalidate(true);
+    private void EnableBoxSelect_Click(object? sender, EventArgs e)
+    {
+        boxSelectEnabled = !boxSelectEnabled;
+        refForm.canBoxSelect = boxSelectEnabled;
+
+        if (boxSelectEnabled)
+        {
+            EnableBoxSelect.Text = $"Cancel ...";
+            refForm.Focus();
         }
-        catch
+        else
         {
-            minZoomRange = original;
-            ZoomMinValue.Text = minZoomRange.ToString("0.00");
+            EnableBoxSelect.Text = "Box Select";
         }
     }
-
-    private void ZoomMaxValue_TextChanged(object sender, EventArgs e)
+    private void MatchAspectButton_Click(object? sender, EventArgs e)
     {
-        double original = maxZoomRange;
-        try
+        double zoomXFactor = refForm.ZoomLevel.x / refForm.ZoomLevel.y;
+        double actualXFactor = refForm.ClientRectangle.Width / refForm.ClientRectangle.Height;
+
+        double diff = actualXFactor / zoomXFactor;
+        int newWidth = (int)(refForm.Width / diff);
+        refForm.ZoomLevel = new(refForm.ZoomLevel.x * diff, refForm.ZoomLevel.y);
+
+        int maxScreenWidth = Screen.FromControl(refForm).WorkingArea.Width;
+        if (newWidth >= maxScreenWidth)
         {
-            double value;
-            if (string.IsNullOrWhiteSpace(ZoomMaxValue.Text) ||
-                ZoomMaxValue.Text.EndsWith('.'))
+            refForm.Location = new(0, refForm.Location.Y);
+
+            double xScaleFactor = (double)maxScreenWidth / newWidth;
+            newWidth = maxScreenWidth;
+            refForm.Height = (int)(refForm.Height * xScaleFactor);
+            refForm.ZoomLevel = new(refForm.ZoomLevel.x * xScaleFactor, refForm.ZoomLevel.y * xScaleFactor);
+        }
+
+        refForm.Width = newWidth;
+    }
+    private void NormalizeButton_Click(object? sender, EventArgs e)
+    {
+        double factor = 1 / Math.Min(refForm.ZoomLevel.x, refForm.ZoomLevel.y);
+        refForm.ZoomLevel = new(factor * refForm.ZoomLevel.x, factor * refForm.ZoomLevel.y);
+    }
+    private void ResetButton_Click(object? sender, EventArgs e)
+    {
+        refForm.ResetAllViewport();
+    }
+    private void ViewportLock_CheckedChanged(object? sender, EventArgs e)
+    {
+        refForm.ViewportLocked = ViewportLock.Checked;
+        RedeclareValues();
+    }
+
+    private void MinBoxX_Finish(object? sender, EventArgs e)
+    {
+        if (double.TryParse(MinBoxX.Text, out double minX))
+        {
+            Float2 min = refForm.MinVisibleGraph, max = refForm.MaxVisibleGraph;
+
+            if (minX > max.x)
             {
-                return;
-            }
-            else
-            {
-                value = double.Parse(ZoomMaxValue.Text);
-                if (value < 1e-2 || value > 1e3 || value < minZoomRange) throw new();
+                MaxBoxX.Text = MinBoxX.Text;
+                MaxBoxX_Finish(sender, e);
+                minX = max.x;
+
+                // Redefine bounds.
+                min = refForm.MinVisibleGraph;
+                max = refForm.MaxVisibleGraph;
             }
 
-            maxZoomRange = value;
-            ZoomTrackBar.Value = (int)Math.Clamp(ZoomToFactor(zoomLevel) * (ZoomTrackBar.Maximum - ZoomTrackBar.Minimum) + ZoomTrackBar.Minimum, ZoomTrackBar.Minimum, ZoomTrackBar.Maximum);
-            double factor = (ZoomTrackBar.Value - ZoomTrackBar.Minimum) / (double)(ZoomTrackBar.Maximum - ZoomTrackBar.Minimum);
-            double newZoom = FactorToZoom(factor);
+            double newCenterX = (minX + max.x) / 2,
+                   zoomFactorX = (max.x - minX) / (max.x - min.x);
 
-            zoomLevel = newZoom;
-            if (newZoom != factor) Invalidate(true);
+            refForm.ScreenCenter = new(newCenterX, refForm.ScreenCenter.y);
+            refForm.ZoomLevel = new(refForm.ZoomLevel.x * zoomFactorX, refForm.ZoomLevel.y);
         }
-        catch
+
+        refForm.Invalidate(false);
+    }
+    private void MaxBoxX_Finish(object? sender, EventArgs e)
+    {
+        if (double.TryParse(MaxBoxX.Text, out double maxX))
         {
-            maxZoomRange = original;
-            ZoomMaxValue.Text = maxZoomRange.ToString("0.00");
+            Float2 min = refForm.MinVisibleGraph, max = refForm.MaxVisibleGraph;
+
+            if (maxX < min.x)
+            {
+                MinBoxX.Text = MaxBoxX.Text;
+                MinBoxX_Finish(sender, e);
+                maxX = min.x;
+
+                // Redefine bounds.
+                min = refForm.MinVisibleGraph;
+                max = refForm.MaxVisibleGraph;
+            }
+
+            double newCenterX = (min.x + maxX) / 2,
+                   zoomFactorX = (maxX - min.x) / (max.x - min.x);
+
+            refForm.ScreenCenter = new(newCenterX, refForm.ScreenCenter.y);
+            refForm.ZoomLevel = new(refForm.ZoomLevel.x * zoomFactorX, refForm.ZoomLevel.y);
         }
+
+        refForm.Invalidate(false);
+    }
+    private void MinBoxY_Finish(object? sender, EventArgs e)
+    {
+        if (double.TryParse(MinBoxY.Text, out double minY))
+        {
+            Float2 min = refForm.MinVisibleGraph, max = refForm.MaxVisibleGraph;
+
+            if (minY > max.y)
+            {
+                MaxBoxY.Text = MinBoxY.Text;
+                MaxBoxY_Finish(sender, e);
+                minY = max.y;
+
+                // Redefine bounds.
+                min = refForm.MinVisibleGraph;
+                max = refForm.MaxVisibleGraph;
+            }
+
+            double newCenterY = -(minY + max.y) / 2, // Keeping it positive flips it for some reason ???
+                   zoomFactorY = (max.y - minY) / (max.y - min.y);
+
+            refForm.ScreenCenter = new(refForm.ScreenCenter.x, newCenterY);
+            refForm.ZoomLevel = new(refForm.ZoomLevel.x, refForm.ZoomLevel.y * zoomFactorY);
+        }
+
+        refForm.Invalidate(false);
+    }
+    private void MaxBoxY_Finish(object? sender, EventArgs e)
+    {
+        if (double.TryParse(MaxBoxY.Text, out double maxY))
+        {
+            Float2 min = refForm.MinVisibleGraph, max = refForm.MaxVisibleGraph;
+
+            if (maxY < min.y)
+            {
+                MinBoxY.Text = MaxBoxY.Text;
+                MinBoxY_Finish(sender, e);
+                maxY = min.y;
+
+                // Redefine bounds.
+                min = refForm.MinVisibleGraph;
+                max = refForm.MaxVisibleGraph;
+            }
+
+            double newCenterY = -(min.y + maxY) / 2, // Keeping it positive flips it for some reason ???
+                   zoomFactorY = (maxY - min.y) / (max.y - min.y);
+
+            refForm.ScreenCenter = new(refForm.ScreenCenter.x, newCenterY);
+            refForm.ZoomLevel = new(refForm.ZoomLevel.x, refForm.ZoomLevel.y * zoomFactorY);
+        }
+
+        refForm.Invalidate(false);
+    }
+
+    public void RedeclareValues()
+    {
+        bool enabled = !refForm.ViewportLocked;
+
+        Float2 minGraph = refForm.MinVisibleGraph,
+               maxGraph = refForm.MaxVisibleGraph;
+
+        MinBoxX.Text = $"{minGraph.x:0.000}";
+        MaxBoxX.Text = $"{maxGraph.x:0.000}";
+        MinBoxY.Text = $"{minGraph.y:0.000}";
+        MaxBoxY.Text = $"{maxGraph.y:0.000}";
+
+        ViewportLock.Checked = !enabled;
+        EnableBoxSelect.Enabled = enabled;
+        MatchAspectButton.Enabled = enabled;
+        NormalizeButton.Enabled = enabled;
+        ResetButton.Enabled = enabled;
+        MinBoxX.Enabled = enabled;
+        MaxBoxX.Enabled = enabled;
+        MinBoxY.Enabled = enabled;
+        MaxBoxY.Enabled = enabled;
+    }
+
+    internal void CompleteBoxSelection()
+    {
+        if (boxSelectEnabled) EnableBoxSelect_Click(null, new());
     }
 }

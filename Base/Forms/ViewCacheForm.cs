@@ -33,6 +33,7 @@ public partial class ViewCacheForm : Form
         foreach (Graphable able in refForm.Graphables)
         {
             long thisBytes = able.GetCacheBytes();
+            if (thisBytes == 0) continue;
             CachePie.Values.Add((able.Color, thisBytes));
             totalBytes += thisBytes;
 

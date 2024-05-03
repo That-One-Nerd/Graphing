@@ -6,24 +6,28 @@ namespace Graphing.Parts;
 public record struct GraphRectangle : IGraphPart
 {
     public Float2 min, max;
+    public double opacity;
 
     public GraphRectangle()
     {
         min = new();
         max = new();
+        opacity = 1;
     }
     
-    public static GraphRectangle FromSize(Float2 center, Float2 size) => new()
+    public static GraphRectangle FromSize(Float2 center, Float2 size, double opacity = 1) => new()
     {
         min = new(center.x - size.x / 2,
                   center.y - size.y / 2),
         max = new(center.x + size.x / 2,
-                  center.y + size.y / 2)
+                  center.y + size.y / 2),
+        opacity = opacity,
     };
-    public static GraphRectangle FromRange(Float2 min, Float2 max) => new()
+    public static GraphRectangle FromRange(Float2 min, Float2 max, double opacity = 1) => new()
     {
         min = min,
-        max = max
+        max = max,
+        opacity = opacity,
     };
 
     public void Render(in GraphForm form, in Graphics g, in Pen pen)
@@ -41,6 +45,9 @@ public record struct GraphRectangle : IGraphPart
                         start.y - end.y);
 
         if (size.x == 0 || size.y == 0) return;
+        Color initialColor = pen.Color;
+        pen.Color = Color.FromArgb((int)(opacity * 255), pen.Color);
         g.FillRectangle(pen.Brush, new Rectangle(start.x, end.y, size.x, size.y));
+        pen.Color = initialColor;
     }
 }

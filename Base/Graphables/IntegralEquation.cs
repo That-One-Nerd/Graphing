@@ -47,7 +47,7 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
         usingAlt = true;
     }
 
-    public override Graphable DeepCopy() => new IntegralEquation(this);
+    public override Graphable ShallowCopy() => new IntegralEquation(this);
 
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
     {
@@ -164,7 +164,7 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
         }
         else
         {
-            stepY += baseEquDel!(stepX) * dX;
+            stepY += (baseEquDel!(stepX - baseEqu!.OffsetX) + baseEqu.OffsetY) * dX;
         }
     }
 
@@ -178,8 +178,8 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
 
     public Graphable Derive()
     {
-        if (usingAlt) return altBaseEqu!.DeepCopy();
-        else return (Equation)baseEqu!.DeepCopy();
+        if (usingAlt) return altBaseEqu!.ShallowCopy();
+        else return (Equation)baseEqu!.ShallowCopy();
     }
     public Graphable Integrate() => new IntegralEquation(this);
 
@@ -234,6 +234,6 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
         double totalDist = Math.Sqrt(dist.x * dist.x + dist.y * dist.y);
         return totalDist <= allowedDist;
     }
-    public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos) =>
-        new(graphMousePos.x, IntegralAtPoint(graphMousePos.x));
+    public override IEnumerable<IGraphPart> GetSelectionItemsToRender(in GraphForm graph, Float2 graphMousePos) =>
+        [new GraphUiCircle(new(graphMousePos.x, IntegralAtPoint(graphMousePos.x)))];
 }

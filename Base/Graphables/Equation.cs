@@ -3,15 +3,25 @@ using Graphing.Forms;
 using Graphing.Parts;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace Graphing.Graphables;
 
-public class Equation : Graphable, IIntegrable, IDerivable
+public class Equation : Graphable, IIntegrable, IDerivable, ITranslatableXY, IConvertSlopeField,
+                                   IConvertColumnTable
 {
     private static int equationNum;
 
+    public bool UngraphWhenConvertedToColumnTable => false;
+    public bool UngraphWhenConvertedToSlopeField => false;
+
+    public double OffsetX { get; set; }
+    public double OffsetY { get; set; }
+
     protected readonly EquationDelegate equ;
     protected readonly List<Float2> cache;
+
+    public event Action<GraphForm> OnInvalidate;
 
     public Equation(EquationDelegate equ)
     {
@@ -20,6 +30,11 @@ public class Equation : Graphable, IIntegrable, IDerivable
 
         this.equ = equ;
         cache = [];
+
+        OffsetX = 0;
+        OffsetY = 0;
+
+        OnInvalidate = delegate { };
     }
 
     public override IEnumerable<IGraphPart> GetItemsToRender(in GraphForm graph)
@@ -46,30 +61,43 @@ public class Equation : Graphable, IIntegrable, IDerivable
             previousX = currentX;
             previousY = currentY;
         }
+        OnInvalidate.Invoke(graph);
         return lines;
     }
 
-    public Graphable Derive() => new Equation(x =>
+    protected double DerivativeAtPoint(double x)
     {
         const double step = 1e-3;
-        return (equ(x + step) - equ(x)) / step;
-    });
+        return (equ(x + step - OffsetX) - equ(x - OffsetX)) / step;
+    }
+
+    public Graphable Derive() => new Equation(DerivativeAtPoint);
     public Graphable Integrate() => new IntegralEquation(this);
 
     public EquationDelegate GetDelegate() => equ;
 
+    public SlopeField ToSlopeField(int detail) => new(detail, (x, y) => DerivativeAtPoint(x))
+    {
+        Color = Color,
+        Name = $"Slope Field of {Name}"
+    };
+    public ColumnTable ToColumnTable(double start, double end, int detail)
+        => new(1.0 / detail, this, start, end);
+
     public override void EraseCache() => cache.Clear();
     protected double GetFromCache(double x, double epsilon)
     {
-        (double dist, double nearest, int index) = NearestCachedPoint(x);
-        if (dist < epsilon) return nearest;
+        (double dist, double nearest, int index) = NearestCachedPoint(x - OffsetX);
+        if (dist < epsilon) return nearest + OffsetY;
         else
         {
-            double result = equ(x);
-            cache.Insert(index + 1, new(x, result));
-            return result;
+            double result = equ(x - OffsetX);
+            cache.Insert(index + 1, new(x - OffsetX, result));
+            return result + OffsetY;
         }
     }
+
+    public double GetValueAt(double x) => GetFromCache(x, 0);
 
     protected (double dist, double y, int index) NearestCachedPoint(double x)
     {
@@ -103,7 +131,7 @@ public class Equation : Graphable, IIntegrable, IDerivable
         }
     }
 
-    public override Graphable DeepCopy() => new Equation(equ);
+    public override Graphable ShallowCopy() => new Equation(equ);
 
     public override long GetCacheBytes() => cache.Count * 16;
 
@@ -121,8 +149,15 @@ public class Equation : Graphable, IIntegrable, IDerivable
         double totalDist = Math.Sqrt(dist.x * dist.x + dist.y * dist.y);
         return totalDist <= allowedDist;
     }
-    public override Float2 GetSelectedPoint(in GraphForm graph, Float2 graphMousePos) =>
-        new(graphMousePos.x, GetFromCache(graphMousePos.x, 1e-3));
+    public override IEnumerable<IGraphPart> GetSelectionItemsToRender(in GraphForm graph, Float2 graphMousePos)
+    {
+        Float2 point = new(graphMousePos.x, GetFromCache(graphMousePos.x, 1e-3));
+        return
+        [
+            new GraphUiText($"({point.x:0.00}, {point.y:0.00})", point, ContentAlignment.BottomLeft),
+            new GraphUiCircle(point),
+        ];
+    }
 
     public override void Preload(Float2 xRange, Float2 yRange, double step)
     {

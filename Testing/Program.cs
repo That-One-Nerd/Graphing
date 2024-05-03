@@ -13,18 +13,15 @@ internal static class Program
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
         Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-
+        
         GraphForm graph = new("One Of The Graphing Calculators Of All Time");
 
-        Equation equ = new(Math.Sin);
-        SlopeField sf = new(2, (x, y) => Math.Cos(x));
-        TangentLine tl = new(2, 2, equ);
-        graph.Graph(equ, sf, tl);
-
-        // Now, when integrating equations, the result is much less jagged
-        // and much faster. Try it out! You can also select points along
-        // equations and such as well. Click on an equation to see for
-        // yourself!
+        Equation equA = new(Math.Sin),
+                 equB = new(Math.Cos);
+        EquationDifference diff = new(2, equA, equB);
+        ParametricEquation equC = new(0, 20, t => 0.0375 * t * Math.Cos(t), t => 0.0625 * t * Math.Sin(t) + 3);
+        TangentLine tanA = new(2, 2, equA);
+        graph.Graph(equA, equB, diff, equC, equB.ToColumnTable(-3, 3, 2), tanA);
 
         Application.Run(graph);
     }
