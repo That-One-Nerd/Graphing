@@ -71,7 +71,7 @@ public class EquationDifference : Graphable, ITranslatableX, IConvertEquation
         Int2 diff = new(screenMousePos.x - nearestPixelPoint.x,
                         screenMousePos.y - nearestPixelPoint.y);
         int dist = (int)Math.Sqrt(diff.x * diff.x + diff.y * diff.y);
-        return dist < 50 * factor * graph.DpiFloat / 192;
+        return dist < 50 * factor * graph.ScalingFactor;
     }
     public override IEnumerable<IGraphPart> GetSelectionItemsToRender(in GraphForm graph, Float2 graphMousePos)
     {

@@ -74,8 +74,8 @@ public record struct GraphUiText : IGraphPart
                 break;
         }
 
-        posScreen.x += (int)(offsetPix.x * form.DpiFloat / 192);
-        posScreen.y += (int)(offsetPix.y * form.DpiFloat / 192);
+        posScreen.x += (int)(offsetPix.x * form.ScalingFactor);
+        posScreen.y += (int)(offsetPix.y * form.ScalingFactor);
 
         if (background)
         {

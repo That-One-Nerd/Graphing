@@ -91,7 +91,7 @@ public class ColumnTable : Graphable
         }
 
         int totalDist = (int)Math.Sqrt(distX * distX + distY * distY);
-        return totalDist < 50 * factor * graph.DpiFloat / 192;
+        return totalDist < 50 * factor * graph.ScalingFactor;
     }
     public override IEnumerable<IGraphPart> GetSelectionItemsToRender(in GraphForm graph, Float2 graphMousePos)
     {

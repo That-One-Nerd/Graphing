@@ -100,7 +100,7 @@ public class TangentLine : Graphable, IConvertEquation, ITranslatableX
         if (graphMousePos.x < Math.Min(line.a.x - 0.25, line.b.x - 0.25) ||
             graphMousePos.x > Math.Max(line.a.x + 0.25, line.b.x + 0.25)) return false;
 
-        double allowedDist = factor * graph.DpiFloat * 80 / 192;
+        double allowedDist = factor * graph.ScalingFactor * 80;
 
         double lineX = graphMousePos.x,
                lineY = currentSlope.x * (lineX - Position) + currentSlope.y;

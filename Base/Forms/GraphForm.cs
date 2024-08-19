@@ -29,7 +29,7 @@ public partial class GraphForm : Form
     public Float2 ScreenCenter { get; set; }
     public Float2 Dpi { get; private set; }
 
-    public float DpiFloat { get; private set; }
+    public float ScalingFactor { get; private set; }
 
     public Float2 ZoomLevel
     {
@@ -92,7 +92,7 @@ public partial class GraphForm : Form
         Dpi = new(tempG.DpiX, tempG.DpiY);
         tempG.Dispose();
 
-        DpiFloat = (float)((Dpi.x + Dpi.y) / 2);
+        ScalingFactor = (float)((Dpi.x + Dpi.y) / 384.0);
 
         ables = [];
         ZoomLevel = new(1, 1);
@@ -142,7 +142,7 @@ public partial class GraphForm : Form
 
         // Draw horizontal/vertical quarter-axis.
         Brush quarterBrush = new SolidBrush(QuarterAxisColor);
-        Pen quarterPen = new(quarterBrush, DpiFloat * 2 / 192);
+        Pen quarterPen = new(quarterBrush, ScalingFactor * 2);
 
         for (double x = Math.Ceiling(MinVisibleGraph.x * 4 / axisScaleX) * axisScaleX / 4; x <= Math.Floor(MaxVisibleGraph.x * 4 / axisScaleX) * axisScaleX / 4; x += axisScaleX / 4)
         {
@@ -159,7 +159,7 @@ public partial class GraphForm : Form
 
         // Draw horizontal/vertical semi-axis.
         Brush semiBrush = new SolidBrush(SemiAxisColor);
-        Pen semiPen = new(semiBrush, DpiFloat * 2 / 192);
+        Pen semiPen = new(semiBrush, ScalingFactor * 2);
 
         for (double x = Math.Ceiling(MinVisibleGraph.x / axisScaleX) * axisScaleX; x <= Math.Floor(MaxVisibleGraph.x / axisScaleX) * axisScaleX; x += axisScaleX)
         {
@@ -175,7 +175,7 @@ public partial class GraphForm : Form
         }
 
         Brush mainLineBrush = new SolidBrush(MainAxisColor);
-        Pen mainLinePen = new(mainLineBrush, DpiFloat * 3 / 192);
+        Pen mainLinePen = new(mainLineBrush, ScalingFactor * 3);
 
         // Draw the main axis (on top of the semi axis).
         Int2 startCenterY = GraphSpaceToScreenSpace(new Float2(0, MinVisibleGraph.y)),
@@ -194,8 +194,8 @@ public partial class GraphForm : Form
         Font textFont = new(Font.Name, 9, FontStyle.Regular);
 
         // X-axis
-        int minX = (int)(DpiFloat * 50 / 192),
-            maxX = ClientRectangle.Height - (int)(DpiFloat * 40 / 192);
+        int minX = (int)(ScalingFactor * 50),
+            maxX = ClientRectangle.Height - (int)(ScalingFactor * 40);
         for (double x = Math.Ceiling(MinVisibleGraph.x / axisScaleX) * axisScaleX; x <= MaxVisibleGraph.x; x += axisScaleX)
         {
             if (x == 0) x = 0; // Fixes -0
@@ -209,7 +209,7 @@ public partial class GraphForm : Form
         }
 
         // Y-axis
-        int minY = (int)(DpiFloat * 10 / 192);
+        int minY = (int)(ScalingFactor * 10);
         for (double y = Math.Ceiling(MinVisibleGraph.y / axisScaleY) * axisScaleY; y <= MaxVisibleGraph.y; y += axisScaleY)
         {
             if (y == 0) continue;
@@ -217,7 +217,7 @@ public partial class GraphForm : Form
             Int2 screenPos = GraphSpaceToScreenSpace(new Float2(0, y));
 
             string result = y.ToString();
-            int maxY = ClientRectangle.Width - (int)(DpiFloat * (textFont.Height * result.Length * 0.40 + 15) / 192);
+            int maxY = ClientRectangle.Width - (int)(ScalingFactor * (textFont.Height * result.Length * 0.40 + 15));
 
             if (screenPos.x < minY) screenPos.x = minY;
             else if (screenPos.x > maxY) screenPos.x = maxY;
@@ -247,7 +247,7 @@ public partial class GraphForm : Form
         {
             IEnumerable<IGraphPart> lines = ables[i].GetItemsToRender(this);
             Brush graphBrush = new SolidBrush(ables[i].Color);
-            Pen graphPen = new(graphBrush, DpiFloat * 3 / 192);
+            Pen graphPen = new(graphBrush, ScalingFactor * 3);
             graphPens[i] = graphPen;
             foreach (IGraphPart gp in lines) gp.Render(this, g, graphPen);
         }
@@ -274,7 +274,7 @@ public partial class GraphForm : Form
             if (boxPosA.x > boxPosB.x) (boxPosA.x, boxPosB.x) = (boxPosB.x, boxPosA.x);
             if (boxPosA.y > boxPosB.y) (boxPosA.y, boxPosB.y) = (boxPosB.y, boxPosA.y);
 
-            Pen boxPen = new(ZoomBoxColor, 2 * DpiFloat / 192);
+            Pen boxPen = new(ZoomBoxColor, ScalingFactor * 2);
             g.DrawRectangle(boxPen, new(boxPosA.x, boxPosA.y,
                                         boxPosB.x - boxPosA.x,
                                         boxPosB.y - boxPosA.y));

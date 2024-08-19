@@ -41,7 +41,7 @@ public partial class GraphColorPickerForm : Form
         MessageLabel.Text = $"Pick a color for {able.Name}.";
 
         // Add preset buttons.
-        int size = (int)(graph.DpiFloat * 48 / 192);
+        int size = (int)(graph.ScalingFactor * 48);
         int position = 0;
         foreach (uint cId in Graphable.DefaultColors)
         {

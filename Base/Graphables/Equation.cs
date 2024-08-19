@@ -43,7 +43,7 @@ public class Equation : Graphable, IIntegrable, IDerivable, ITranslatableXY, ICo
 
         double epsilon = Math.Abs(graph.ScreenSpaceToGraphSpace(new Int2(0, 0)).x
                                 - graph.ScreenSpaceToGraphSpace(new Int2(step / 2, 0)).x) / 5;
-        epsilon *= graph.DpiFloat / 192;
+        epsilon *= graph.ScalingFactor;
 
         List<IGraphPart> lines = [];
 
@@ -142,7 +142,7 @@ public class Equation : Graphable, IIntegrable, IDerivable, ITranslatableXY, ICo
         (_, _, int index) = NearestCachedPoint(graphMousePos.x);
         Int2 screenCachePos = graph.GraphSpaceToScreenSpace(cache[index]);
 
-        double allowedDist = factor * graph.DpiFloat * 80 / 192;
+        double allowedDist = factor * graph.ScalingFactor * 80;
 
         Int2 dist = new(screenCachePos.x - screenMousePos.x,
                         screenCachePos.y - screenMousePos.y);

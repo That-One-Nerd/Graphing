@@ -54,7 +54,7 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
         const int step = 10;
         double epsilon = Math.Abs(graph.ScreenSpaceToGraphSpace(new Int2(0, 0)).x
                                 - graph.ScreenSpaceToGraphSpace(new Int2(step / 2, 0)).x) / 5;
-        epsilon *= graph.DpiFloat / 192;
+        epsilon *= graph.ScalingFactor;
         List<IGraphPart> lines = [];
 
         Int2 originLocation = graph.GraphSpaceToScreenSpace(new Float2(0, 0));
@@ -227,7 +227,7 @@ public class IntegralEquation : Graphable, IIntegrable, IDerivable
         Int2 screenPos = graph.GraphSpaceToScreenSpace(new Float2(graphMousePos.x,
                                                                   IntegralAtPoint(graphMousePos.x)));
 
-        double allowedDist = factor * graph.DpiFloat * 80 / 192;
+        double allowedDist = factor * graph.ScalingFactor * 80;
 
         Int2 dist = new(screenPos.x - screenMousePos.x,
                         screenPos.y - screenMousePos.y);

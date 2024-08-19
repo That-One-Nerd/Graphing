@@ -37,9 +37,9 @@ public partial class ViewCacheForm : Form
             CachePie.Values.Add((able.Color, thisBytes));
             totalBytes += thisBytes;
 
-            int buttonHeight = (int)(refForm.DpiFloat * 46 / 192),
-                buttonWidth = (int)(refForm.DpiFloat * 92 / 192),
-                buttonSpaced = (int)(refForm.DpiFloat * 98 / 192);
+            int buttonHeight = (int)(refForm.ScalingFactor * 46),
+                buttonWidth = (int)(refForm.ScalingFactor * 92),
+                buttonSpaced = (int)(refForm.ScalingFactor * 98);
 
             if (index < labelCache.Count)
             {

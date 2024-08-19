@@ -111,7 +111,7 @@ public class SlopeField : Graphable
         if (graphMousePos.x < Math.Min(line.a.x, line.b.x) ||
             graphMousePos.x > Math.Max(line.a.x, line.b.x)) return false;
 
-        double allowedDist = factor * graph.DpiFloat * 10 / 192;
+        double allowedDist = factor * graph.ScalingFactor * 10;
 
         double lineX = graphMousePos.x,
                lineY = slope * (lineX - nearestPos.x) + nearestPos.y;
