@@ -1,3 +1,6 @@
+using Graphing.Forms;
+using Graphing.Graphs;
+
 namespace Graphing;
 
 public static class Program
@@ -7,8 +10,11 @@ public static class Program
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+        Application.SetHighDpiMode(HighDpiMode.SystemAware);
 
-        Application.Run();
+        Graph2d graph = new("Nice testing graph");
+        GraphViewForm form = new(graph);
+
+        Application.Run(form);
     }
 }
