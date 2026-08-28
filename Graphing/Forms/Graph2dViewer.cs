@@ -15,16 +15,14 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
     private float ScaleFactor => DeviceDpi / 96.0f;
 
     public Graph2dViewer() : base() { }
-    public Graph2dViewer(Graph2d graph) : base(graph) { }
+    public Graph2dViewer(Graph2d graph) : base(graph)
+    {
+        SetStyle(ControlStyles.UserPaint, true);
+        SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+        SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+    }
 
     protected override void OnPaint(PaintEventArgs e)
-    {
-        Graphics g = e.Graphics;
-
-        Point zero = GraphToScreen((0, 0));
-        g.DrawRectangle(new Pen(Color.Red), new(zero.X - 5, zero.Y - 5, 10, 10));
-    }
-    protected override void OnPaintBackground(PaintEventArgs e)
     {
         Graphics g = e.Graphics;
 
@@ -43,10 +41,19 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
         Float2 quarterMax = (Math.Round(max.x / quarterStep) * quarterStep, Math.Round(max.y / quarterStep) * quarterStep);
 
         Pen quarterPen = new(QuarterAxisColor, 1 * ScaleFactor);
-        for (double x = quarterMin.x; x <= quarterMax.x; x += quarterStep)
+        int c = 0;
+        for (double x = quarterMin.x; x <= quarterMax.x; x += quarterStep, c++)
         {
             g.DrawLine(quarterPen, GraphToScreen((x, min.y)), GraphToScreen((x, max.y)));
         }
+        //ParentForm.Text = $"Iters: {c}, min: {quarterMin.x}, max: {quarterMax.x}, step: {quarterStep}";
+
+        Point zero = GraphToScreen((0, 0));
+        g.DrawRectangle(new Pen(Color.Red), new(zero.X - 5, zero.Y - 5, 10, 10));
+    }
+    protected override void OnPaintBackground(PaintEventArgs e)
+    {
+        
     }
 
     protected override void OnResize(EventArgs e) => Invalidate();
