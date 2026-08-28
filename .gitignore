@@ -1,8 +1,7 @@
+# Visual Studio Stuff
 .vs/
-.github/
+*.user
 
-Base/obj/
-Base/bin/
-
-Testing/obj
-Testing/bin
+# Binary Files
+*/obj/
+*/bin/
