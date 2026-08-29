@@ -1,10 +1,9 @@
-﻿using Graphing.Graphs;
-using Nerd_STF.Mathematics;
+﻿using Nerd_STF.Mathematics;
 using System.ComponentModel;
 
 namespace Graphing.Forms;
 
-public partial class Graph2dViewer : GraphViewerBase<Graph2d>
+public partial class Graph2dViewer : GraphViewerBase
 {
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public Float2 ScreenCenter { get; set { field = value; Invalidate(); } }
@@ -17,13 +16,15 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
 
     private float ScaleFactor => DeviceDpi / 96.0f;
 
+    private string xAxis = "x", yAxis = "y";
+
     public Graph2dViewer() : base()
     {
         SetStyle(ControlStyles.UserPaint, true);
         SetStyle(ControlStyles.AllPaintingInWmPaint, true);
         SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
     }
-    public Graph2dViewer(Graph2d graph) : base(graph)
+    public Graph2dViewer(Graph graph) : base(graph)
     {
         SetStyle(ControlStyles.UserPaint, true);
         SetStyle(ControlStyles.AllPaintingInWmPaint, true);
@@ -63,20 +64,23 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
 
     private void PaintGrid(Graphics g)
     {
+        if (Graph is null) return;
+        string xAxis = Graph.Axes[0], yAxis = Graph.Axes[1];
+
         // Draw the background grid.
         double semiStepX = Math.Pow(2, Math.Round(Math.Log2(ScreenZoom.x))), quarterStepX = semiStepX / 4,
                semiStepY = Math.Pow(2, Math.Round(Math.Log2(ScreenZoom.y))), quarterStepY = semiStepY / 4;
 
-        Float2 min = ScreenToGraph(new(0, ClientRectangle.Height - 1)),
-               max = ScreenToGraph(new(ClientRectangle.Width - 1, 0));
+        GraphPoint min = ScreenToGraph(new(0, ClientRectangle.Height - 1)),
+                   max = ScreenToGraph(new(ClientRectangle.Width - 1, 0));
 
-        Float2 semiMin = (Math.Floor(min.x / semiStepX) * semiStepX, Math.Floor(min.y / semiStepY) * semiStepY);
-        Float2 semiMax = (Math.Ceiling(max.x / semiStepX) * semiStepX, Math.Ceiling(max.y / semiStepY) * semiStepY);
+        GraphPoint semiMin = [("x", Math.Floor(min[xAxis] / semiStepX) * semiStepX), ("y", Math.Floor(min[yAxis] / semiStepY) * semiStepY)];
+        GraphPoint semiMax = [("x", Math.Ceiling(max[xAxis] / semiStepX) * semiStepX), ("y", Math.Ceiling(max[yAxis] / semiStepY) * semiStepY)];
 
         if (Graph.Size.HasValue)
         {
-            semiMin.x = Math.Max(semiMin.x, Graph.Min!.Value.x); semiMin.y = Math.Max(semiMin.y, Graph.Min!.Value.y);
-            semiMax.x = Math.Min(semiMax.x, Graph.Max!.Value.x); semiMax.y = Math.Min(semiMax.y, Graph.Max!.Value.y);
+            semiMin[xAxis] = Math.Max(semiMin[xAxis], Graph.Min!.Value[xAxis]); semiMin[yAxis] = Math.Max(semiMin[yAxis], Graph.Min!.Value[yAxis]);
+            semiMax[xAxis] = Math.Min(semiMax[xAxis], Graph.Max!.Value[xAxis]); semiMax[yAxis] = Math.Min(semiMax[yAxis], Graph.Max!.Value[yAxis]);
         }
 
         PointF semiStepScreen;
@@ -87,13 +91,13 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
         }
         PointF semiMinScreen = GraphToScreen(semiMin), semiMaxScreen = GraphToScreen(semiMax);
 
-        Float2 quarterMin = (Math.Floor(min.x / quarterStepX) * quarterStepX, Math.Floor(min.y / quarterStepX) * quarterStepX);
-        Float2 quarterMax = (Math.Ceiling(max.x / quarterStepY) * quarterStepY, Math.Ceiling(max.y / quarterStepY) * quarterStepY);
+        GraphPoint quarterMin = [("x", Math.Floor(min[xAxis] / quarterStepX) * quarterStepX), ("y", Math.Floor(min[yAxis] / quarterStepX) * quarterStepX)];
+        GraphPoint quarterMax = [("x", Math.Ceiling(max[xAxis] / quarterStepY) * quarterStepY), ("y", Math.Ceiling(max[yAxis] / quarterStepY) * quarterStepY)];
 
         if (Graph.Size.HasValue)
         {
-            quarterMin.x = Math.Max(quarterMin.x, Graph.Min!.Value.x); quarterMin.y = Math.Max(quarterMin.y, Graph.Min!.Value.y);
-            quarterMax.x = Math.Min(quarterMax.x, Graph.Max!.Value.x); quarterMax.y = Math.Min(quarterMax.y, Graph.Max!.Value.y);
+            quarterMin[xAxis] = Math.Max(quarterMin[xAxis], Graph.Min!.Value[xAxis]); quarterMin[yAxis] = Math.Max(quarterMin[yAxis], Graph.Min!.Value[yAxis]);
+            quarterMax[xAxis] = Math.Min(quarterMax[xAxis], Graph.Max!.Value[xAxis]); quarterMax[yAxis] = Math.Min(quarterMax[yAxis], Graph.Max!.Value[yAxis]);
         }
 
         PointF quarterStepScreen;
@@ -170,34 +174,34 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
     {
         if (ViewportLocked) return;
 
-        Float2 mouseOver = ScreenToGraph(e.Location);
+        GraphPoint mouseOver = ScreenToGraph(e.Location);
 
         Float2 newZoom = ScreenZoom;
         newZoom.x *= 1 - e.Delta * 0.00075;
         newZoom.y *= 1 - e.Delta * 0.00075;
         ScreenZoom = newZoom;
 
-        Float2 newOver = ScreenToGraph(e.Location);
-        Float2 diff = mouseOver - newOver;
-        ScreenCenter += (diff.x, -diff.y);
+        GraphPoint newOver = ScreenToGraph(e.Location);
+        GraphPoint diff = mouseOver - newOver;
+        ScreenCenter += (diff[xAxis], -diff[yAxis]);
     }
 
-    public PointF GraphToScreen(Float2 graph)
+    public PointF GraphToScreen(GraphPoint graph)
     {
-        graph.y = -graph.y;
+        graph[yAxis] = -graph[yAxis];
 
-        graph.x -= ScreenCenter.x;
-        graph.y -= ScreenCenter.y;
+        graph[xAxis] -= ScreenCenter.x;
+        graph[yAxis] -= ScreenCenter.y;
 
-        graph.x *= DeviceDpi / ScreenZoom.x;
-        graph.y *= DeviceDpi / ScreenZoom.y;
+        graph[xAxis] *= DeviceDpi / ScreenZoom.x;
+        graph[yAxis] *= DeviceDpi / ScreenZoom.y;
 
-        graph.x += ClientRectangle.Width / 2.0;
-        graph.y += ClientRectangle.Height / 2.0;
+        graph[xAxis] += ClientRectangle.Width / 2.0;
+        graph[yAxis] += ClientRectangle.Height / 2.0;
 
-        return new((float)graph.x, (float)graph.y);
+        return new((float)graph[xAxis], (float)graph[yAxis]);
     }
-    public Float2 ScreenToGraph(PointF screen)
+    public GraphPoint ScreenToGraph(PointF screen)
     {
         Float2 result = new(screen.X, screen.Y);
 
@@ -213,6 +217,13 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
         result.y = -result.y;
 
         return result;
+    }
+
+    protected override void UpdateActiveGraph()
+    {
+        base.UpdateActiveGraph();
+        xAxis = Graph?.Axes[0] ?? "x";
+        yAxis = Graph?.Axes[1] ?? "y";
     }
 
     private enum ClickState

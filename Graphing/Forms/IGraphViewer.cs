@@ -1,15 +1,12 @@
-﻿using Graphing.Graphs;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace Graphing.Forms;
 
 internal interface IGraphViewer : IDisposable
 {
-    GraphBase? Graph { get; set; }
-    Type GraphType { get; }
+    Graph? Graph { get; set; }
 }
-public abstract class GraphViewerBase<TGraph> : UserControl, IGraphViewer
-    where TGraph : GraphBase
+public abstract class GraphViewerBase(Graph graph) : UserControl, IGraphViewer
 {
     public static readonly Color BackgroundColor = Color.White;
     public static readonly Color MainAxisColor = Color.Black;
@@ -20,19 +17,16 @@ public abstract class GraphViewerBase<TGraph> : UserControl, IGraphViewer
 
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public TGraph? Graph
+    public Graph? Graph
     {
         get; set
         {
             field = value;
             UpdateActiveGraph();
         }
-    }
-    GraphBase? IGraphViewer.Graph { get => Graph; set => Graph = (TGraph)value!; }
-    Type IGraphViewer.GraphType => typeof(TGraph);
+    } = graph;
 
-    public GraphViewerBase() => Graph = default;
-    public GraphViewerBase(TGraph graph) => Graph = graph;
+    public GraphViewerBase() : this(null!) { }
 
     protected virtual void UpdateActiveGraph()
     {

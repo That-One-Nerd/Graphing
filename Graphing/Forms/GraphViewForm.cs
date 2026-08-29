@@ -1,5 +1,4 @@
-﻿using Graphing.Graphs;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace Graphing.Forms
 {
@@ -8,7 +7,7 @@ namespace Graphing.Forms
         private IGraphViewer viewer = null!;
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public GraphBase? Graph
+        public Graph? Graph
         {
             get; set
             {
@@ -25,7 +24,7 @@ namespace Graphing.Forms
         }
 
         public GraphViewForm() : this(null!) { }
-        public GraphViewForm(GraphBase graph)
+        public GraphViewForm(Graph graph)
         {
             SuspendLayout();
 
@@ -38,7 +37,7 @@ namespace Graphing.Forms
             ResumeLayout(true);
         }
 
-        private IGraphViewer CreateViewerFromGraph(GraphBase? graph)
+        private IGraphViewer CreateViewerFromGraph(Graph? graph)
         {
             if (graph is null) return viewer ?? new Graph2dViewer();
 
@@ -46,7 +45,7 @@ namespace Graphing.Forms
             return new Graph2dViewer();
         }
 
-        private void InitViewer(IGraphViewer viewer, GraphBase? graph)
+        private void InitViewer(IGraphViewer viewer, Graph? graph)
         {
             SuspendLayout();
             UserControl control = viewer as UserControl ?? throw new("Improperly configured GraphViewer.");

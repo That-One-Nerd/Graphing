@@ -1,5 +1,4 @@
 using Graphing.Forms;
-using Graphing.Graphs;
 
 namespace Graphing;
 
@@ -12,7 +11,7 @@ public static class Program
         Application.SetCompatibleTextRenderingDefault(false);
         Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
 
-        Graph2d graph = new("Nice testing graph")
+        Graph graph = new("Nice testing graph")
         {
             //Size = (4, 4)
         };
