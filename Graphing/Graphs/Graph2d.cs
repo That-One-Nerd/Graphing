@@ -1,5 +1,4 @@
 ﻿using Nerd_STF.Mathematics;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Graphing.Graphs;
 

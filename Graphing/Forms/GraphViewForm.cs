@@ -48,10 +48,12 @@ namespace Graphing.Forms
 
         private void InitViewer(IGraphViewer viewer, GraphBase? graph)
         {
+            SuspendLayout();
             UserControl control = viewer as UserControl ?? throw new("Improperly configured GraphViewer.");
             control.Dock = DockStyle.Fill;
             viewer.Graph = graph;
             Controls.Add(control);
+            ResumeLayout(true);
         }
     }
 }

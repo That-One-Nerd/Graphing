@@ -10,11 +10,11 @@ public static class Program
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        Application.SetHighDpiMode(HighDpiMode.SystemAware);
+        Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
 
         Graph2d graph = new("Nice testing graph")
         {
-            Size = (4, 4)
+            //Size = (4, 4)
         };
         GraphViewForm form = new(graph);
 
