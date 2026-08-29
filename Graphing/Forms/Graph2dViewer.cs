@@ -24,41 +24,106 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
 
     protected override void OnPaint(PaintEventArgs e)
     {
+        DateTime start = DateTime.Now;
+
         Graphics g = e.Graphics;
 
         // True background wipe.
         g.FillRectangle(new SolidBrush(BackgroundColor), g.VisibleClipBounds);
 
+        if (Graph is null) return;
+
         // Draw the background grid.
-        double semiStep = 1, quarterStep = semiStep / 4;
+        double semiStepX = Math.Pow(2, Math.Round(Math.Log2(ScreenZoom.x))), quarterStepX = semiStepX / 4,
+               semiStepY = Math.Pow(2, Math.Round(Math.Log2(ScreenZoom.y))), quarterStepY = semiStepY / 4;
 
         Float2 min = ScreenToGraph(new(0, ClientRectangle.Height - 1)),
                max = ScreenToGraph(new(ClientRectangle.Width - 1, 0));
 
-        Float2 semiMin = (Math.Round(min.x / semiStep) * semiStep, Math.Round(min.y / semiStep) * semiStep);
-        Float2 semiMax = (Math.Round(max.x / semiStep) * semiStep, Math.Round(max.y / semiStep) * semiStep);
-        Float2 quarterMin = (Math.Round(min.x / quarterStep) * quarterStep, Math.Round(min.y / quarterStep) * quarterStep);
-        Float2 quarterMax = (Math.Round(max.x / quarterStep) * quarterStep, Math.Round(max.y / quarterStep) * quarterStep);
+        Float2 semiMin = (Math.Round(min.x / semiStepX) * semiStepX, Math.Round(min.y / semiStepX) * semiStepX);
+        Float2 semiMax = (Math.Round(max.x / semiStepY) * semiStepY, Math.Round(max.y / semiStepY) * semiStepY);
 
-        Pen quarterPen = new(QuarterAxisColor, 1 * ScaleFactor);
-        int c = 0;
-        for (double x = quarterMin.x; x <= quarterMax.x; x += quarterStep, c++)
+        if (Graph.Size.HasValue)
         {
-            g.DrawLine(quarterPen, GraphToScreen((x, min.y)), GraphToScreen((x, max.y)));
+            semiMin.x = Math.Max(semiMin.x, Graph.Min!.Value.x); semiMin.y = Math.Max(semiMin.y, Graph.Min!.Value.y);
+            semiMax.x = Math.Min(semiMax.x, Graph.Max!.Value.x); semiMax.y = Math.Min(semiMax.y, Graph.Max!.Value.y);
         }
-        //ParentForm.Text = $"Iters: {c}, min: {quarterMin.x}, max: {quarterMax.x}, step: {quarterStep}";
 
-        Point zero = GraphToScreen((0, 0));
-        g.DrawRectangle(new Pen(Color.Red), new(zero.X - 5, zero.Y - 5, 10, 10));
+        PointF semiStepScreen;
+        {
+            PointF b = GraphToScreen(semiMin + (semiStepX, semiStepY));
+            PointF a = GraphToScreen(semiMin);
+            semiStepScreen = new(b.X - a.X, b.Y - a.Y);
+        }
+        PointF semiMinScreen = GraphToScreen(semiMin), semiMaxScreen = GraphToScreen(semiMax);
+
+        Float2 quarterMin = (Math.Round(min.x / quarterStepX) * quarterStepX, Math.Round(min.y / quarterStepX) * quarterStepX);
+        Float2 quarterMax = (Math.Round(max.x / quarterStepY) * quarterStepY, Math.Round(max.y / quarterStepY) * quarterStepY);
+
+        if (Graph.Size.HasValue)
+        {
+            quarterMin.x = Math.Max(quarterMin.x, Graph.Min!.Value.x); quarterMin.y = Math.Max(quarterMin.y, Graph.Min!.Value.y);
+            quarterMax.x = Math.Min(quarterMax.x, Graph.Max!.Value.x); quarterMax.y = Math.Min(quarterMax.y, Graph.Max!.Value.y);
+        }
+
+        PointF quarterStepScreen;
+        {
+            PointF b = GraphToScreen(quarterMin + (quarterStepX, quarterStepY));
+            PointF a = GraphToScreen(quarterMin);
+            quarterStepScreen = new(b.X - a.X, b.Y - a.Y);
+        }
+        PointF quarterMinScreen = GraphToScreen(quarterMin), quarterMaxScreen = GraphToScreen(quarterMax);
+
+        PointF minLine = new(0, 0), maxLine = new(ClientRectangle.Width - 1, ClientRectangle.Height - 1);
+        if (Graph.Size.HasValue)
+        {
+            PointF possibleMin = GraphToScreen(Graph.Min!.Value), possibleMax = GraphToScreen(Graph.Max!.Value);
+            minLine.X = Math.Max(0, possibleMin.X); minLine.Y = Math.Max(0, possibleMin.Y);
+            maxLine.X = Math.Min(ClientRectangle.Width - 1, possibleMax.X); maxLine.Y = Math.Min(ClientRectangle.Height - 1, possibleMax.Y);
+        }
+
+        // Quarter axis
+        Pen quarterPen = new(QuarterAxisColor, 1 * ScaleFactor);
+        for (float xS = quarterMinScreen.X; xS <= quarterMaxScreen.X; xS += quarterStepScreen.X)
+        {
+            g.DrawLine(quarterPen, new PointF(xS, minLine.Y), new PointF(xS, maxLine.Y));
+        }
+        for (float yS = quarterMaxScreen.Y; yS <= quarterMinScreen.Y; yS -= quarterStepScreen.Y)
+        {
+            g.DrawLine(quarterPen, new PointF(minLine.X, yS), new PointF(maxLine.X, yS));
+        }
+
+        // Semi axis
+        Pen semiPen = new(SemiAxisColor, 1 * ScaleFactor);
+        for (float xS = semiMinScreen.X; xS <= semiMaxScreen.X; xS += semiStepScreen.X)
+        {
+            g.DrawLine(semiPen, new PointF(xS, minLine.Y), new PointF(xS, maxLine.Y));
+        }
+        for (float yS = semiMaxScreen.Y; yS <= semiMinScreen.Y; yS -= semiStepScreen.Y)
+        {
+            g.DrawLine(semiPen, new PointF(minLine.X, yS), new PointF(maxLine.X, yS));
+        }
+
+        // Main axis
+
+        PointF zero = GraphToScreen((0, 0));
+        g.DrawRectangle(new Pen(Color.Red), new RectangleF(zero.X - 5, zero.Y - 5, 10, 10));
+
+        // Debug frame time.
+        DateTime end = DateTime.Now;
+        TimeSpan time = end - start;
+
+        double msec = time.TotalMilliseconds;
+        debugRenderTimes.Enqueue(msec);
+        while (debugRenderTimes.Count > 25) debugRenderTimes.Dequeue();
+
+        ParentForm.Text = $"Frame Time {msec:0.0} msec ({1000 / msec:0.0} fps, {1000 / debugRenderTimes.Average():0.0} avg)";
     }
-    protected override void OnPaintBackground(PaintEventArgs e)
-    {
-        
-    }
+    private readonly Queue<double> debugRenderTimes = [];
 
     protected override void OnResize(EventArgs e) => Invalidate();
 
-    public Point GraphToScreen(Float2 graph)
+    public PointF GraphToScreen(Float2 graph)
     {
         graph.y = -graph.y;
 
@@ -71,9 +136,9 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
         graph.x += ClientRectangle.Width / 2.0;
         graph.y += ClientRectangle.Height / 2.0;
 
-        return new((int)graph.x, (int)graph.y);
+        return new((float)graph.x, (float)graph.y);
     }
-    public Float2 ScreenToGraph(Point screen)
+    public Float2 ScreenToGraph(PointF screen)
     {
         Float2 result = new(screen.X, screen.Y);
 

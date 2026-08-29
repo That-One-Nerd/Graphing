@@ -12,7 +12,10 @@ public static class Program
         Application.SetCompatibleTextRenderingDefault(false);
         Application.SetHighDpiMode(HighDpiMode.SystemAware);
 
-        Graph2d graph = new("Nice testing graph");
+        Graph2d graph = new("Nice testing graph")
+        {
+            Size = (4, 4)
+        };
         GraphViewForm form = new(graph);
 
         Application.Run(form);
