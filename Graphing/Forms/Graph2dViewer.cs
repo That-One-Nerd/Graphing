@@ -85,14 +85,14 @@ public partial class Graph2dViewer : GraphViewerBase
 
         PointF semiStepScreen;
         {
-            PointF b = GraphToScreen(semiMin + (semiStepX, semiStepY));
+            PointF b = GraphToScreen(semiMin + [("x", semiStepX), ("y", semiStepY)]);
             PointF a = GraphToScreen(semiMin);
             semiStepScreen = new(b.X - a.X, b.Y - a.Y);
         }
         PointF semiMinScreen = GraphToScreen(semiMin), semiMaxScreen = GraphToScreen(semiMax);
 
-        GraphPoint quarterMin = [("x", Math.Floor(min[xAxis] / quarterStepX) * quarterStepX), ("y", Math.Floor(min[yAxis] / quarterStepX) * quarterStepX)];
-        GraphPoint quarterMax = [("x", Math.Ceiling(max[xAxis] / quarterStepY) * quarterStepY), ("y", Math.Ceiling(max[yAxis] / quarterStepY) * quarterStepY)];
+        GraphPoint quarterMin = [("x", Math.Floor(min[xAxis] / quarterStepX) * quarterStepX), ("y", Math.Floor(min[yAxis] / quarterStepY) * quarterStepY)];
+        GraphPoint quarterMax = [("x", Math.Ceiling(max[xAxis] / quarterStepX) * quarterStepX), ("y", Math.Ceiling(max[yAxis] / quarterStepY) * quarterStepY)];
 
         if (Graph.Size.HasValue)
         {
@@ -102,7 +102,7 @@ public partial class Graph2dViewer : GraphViewerBase
 
         PointF quarterStepScreen;
         {
-            PointF b = GraphToScreen(quarterMin + (quarterStepX, quarterStepY));
+            PointF b = GraphToScreen(quarterMin + [("x", quarterStepX), ("y", quarterStepY)]);
             PointF a = GraphToScreen(quarterMin);
             quarterStepScreen = new(b.X - a.X, b.Y - a.Y);
         }
