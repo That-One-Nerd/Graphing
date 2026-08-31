@@ -1,6 +1,7 @@
 ﻿using Graphing.Graphs;
 using Nerd_STF.Mathematics;
 using System.ComponentModel;
+using System.Drawing.Drawing2D;
 
 namespace Graphing.Forms;
 
@@ -15,6 +16,8 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public bool ViewportLocked { get; set; }
 
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+    public bool AntiAliasing { get; set { field = value; Invalidate(); } } = false;
     private float ScaleFactor => DeviceDpi / 96.0f;
 
     public Graph2dViewer() : base()
@@ -40,15 +43,16 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
 
         Graphics g = e.Graphics;
 
+        // This makes a BIG performance difference!
+        g.SmoothingMode = AntiAliasing ? SmoothingMode.HighQuality
+                                       : SmoothingMode.HighSpeed;
+
         // True background wipe.
         g.Clear(BackgroundColor);
 
         if (Graph is null) return;
 
         PaintGrid(g);
-
-        PointF zero = GraphToScreen((0, 0));
-        g.DrawRectangle(new Pen(Color.Red), new RectangleF(zero.X - 5, zero.Y - 5, 10, 10));
 
         // Debug frame time.
         DateTime end = DateTime.Now;
@@ -64,6 +68,9 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
     private void PaintGrid(Graphics g)
     {
         // Draw the background grid.
+        // TODO: Right here, when step is calculated, we use both a Pow and a Log.
+        //       It's decently fast right now, but I suspect we can do something faster
+        //       by reading the raw exponent from the IEEE-754 float data.
         double semiStepX = Math.Pow(2, Math.Round(Math.Log2(ScreenZoom.x))), quarterStepX = semiStepX / 4,
                semiStepY = Math.Pow(2, Math.Round(Math.Log2(ScreenZoom.y))), quarterStepY = semiStepY / 4;
 
@@ -73,7 +80,7 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
         Float2 semiMin = (Math.Floor(min.x / semiStepX) * semiStepX, Math.Floor(min.y / semiStepY) * semiStepY);
         Float2 semiMax = (Math.Ceiling(max.x / semiStepX) * semiStepX, Math.Ceiling(max.y / semiStepY) * semiStepY);
 
-        if (Graph.Size.HasValue)
+        if (Graph!.Size.HasValue)
         {
             semiMin.x = Math.Max(semiMin.x, Graph.Min!.Value.x); semiMin.y = Math.Max(semiMin.y, Graph.Min!.Value.y);
             semiMax.x = Math.Min(semiMax.x, Graph.Max!.Value.x); semiMax.y = Math.Min(semiMax.y, Graph.Max!.Value.y);
@@ -90,7 +97,7 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
         Float2 quarterMin = (Math.Floor(min.x / quarterStepX) * quarterStepX, Math.Floor(min.y / quarterStepX) * quarterStepX);
         Float2 quarterMax = (Math.Ceiling(max.x / quarterStepY) * quarterStepY, Math.Ceiling(max.y / quarterStepY) * quarterStepY);
 
-        if (Graph.Size.HasValue)
+        if (Graph!.Size.HasValue)
         {
             quarterMin.x = Math.Max(quarterMin.x, Graph.Min!.Value.x); quarterMin.y = Math.Max(quarterMin.y, Graph.Min!.Value.y);
             quarterMax.x = Math.Min(quarterMax.x, Graph.Max!.Value.x); quarterMax.y = Math.Min(quarterMax.y, Graph.Max!.Value.y);
@@ -114,27 +121,44 @@ public partial class Graph2dViewer : GraphViewerBase<Graph2d>
 
         // Quarter axis
         Pen quarterPen = new(QuarterAxisColor, 1 * ScaleFactor);
-        for (float xS = quarterMinScreen.X; xS <= quarterMaxScreen.X; xS += quarterStepScreen.X)
+        for (float x = quarterMinScreen.X; x <= quarterMaxScreen.X; x += quarterStepScreen.X)
         {
-            g.DrawLine(quarterPen, new PointF(xS, minLine.Y), new PointF(xS, maxLine.Y));
+            g.DrawLine(quarterPen, new PointF(x, minLine.Y), new PointF(x, maxLine.Y));
         }
-        for (float yS = quarterMaxScreen.Y; yS <= quarterMinScreen.Y; yS -= quarterStepScreen.Y)
+        for (float y = quarterMaxScreen.Y; y <= quarterMinScreen.Y; y -= quarterStepScreen.Y)
         {
-            g.DrawLine(quarterPen, new PointF(minLine.X, yS), new PointF(maxLine.X, yS));
+            g.DrawLine(quarterPen, new PointF(minLine.X, y), new PointF(maxLine.X, y));
         }
 
-        // Semi axis
+        // Semi axis. Also draw the units here to save a step.
+        PointF zero = GraphToScreen((0, 0));
+        double graph = semiMin.x;
+        float textPos = zero.Y;
+        Brush textBrush = new SolidBrush(UnitsTextColor);
+        Font textFont = new(Font.Name, 10, FontStyle.Regular);
+        textPos = MathE.Clamp(textPos, 0, ClientRectangle.Height - ScaleFactor * textFont.Size * 2);
+
         Pen semiPen = new(SemiAxisColor, 1 * ScaleFactor);
-        for (float xS = semiMinScreen.X; xS <= semiMaxScreen.X; xS += semiStepScreen.X)
+        for (float x = semiMinScreen.X; x <= semiMaxScreen.X; x += semiStepScreen.X, graph += semiStepX)
         {
-            g.DrawLine(semiPen, new PointF(xS, minLine.Y), new PointF(xS, maxLine.Y));
+            g.DrawLine(semiPen, new PointF(x, minLine.Y), new PointF(x, maxLine.Y));
+            g.DrawString($"{graph}", textFont, textBrush, x, textPos);
         }
-        for (float yS = semiMaxScreen.Y; yS <= semiMinScreen.Y; yS -= semiStepScreen.Y)
+        graph = semiMax.y;
+        for (float y = semiMaxScreen.Y; y <= semiMinScreen.Y; y -= semiStepScreen.Y, graph -= semiStepY)
         {
-            g.DrawLine(semiPen, new PointF(minLine.X, yS), new PointF(maxLine.X, yS));
+            g.DrawLine(semiPen, new PointF(minLine.X, y), new PointF(maxLine.X, y));
+
+            if (graph == 0) continue;
+            string text = graph.ToString();
+            textPos = Math.Clamp(zero.X, 0, ClientRectangle.Width - g.MeasureString(text, textFont).Width);
+            g.DrawString($"{graph}", textFont, textBrush, textPos, y);
         }
 
         // Main axis
+        Pen mainPen = new(MainAxisColor, 1.5f * ScaleFactor);
+        g.DrawLine(mainPen, new PointF(minLine.X, zero.Y), new PointF(maxLine.X, zero.Y));
+        g.DrawLine(mainPen, new PointF(zero.X, minLine.Y), new PointF(zero.X, maxLine.Y));
     }
 
     protected override void OnResize(EventArgs e) => Invalidate();

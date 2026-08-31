@@ -14,7 +14,7 @@ public static class Program
 
         Graph2d graph = new("Nice testing graph")
         {
-            //Size = (4, 4)
+            Size = (3, 3)
         };
         GraphViewForm form = new(graph);
 
